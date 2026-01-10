@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フィードバック制御シミュレータ - 第1章</title>
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        #blockDiagram {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 80px;
+            text-align: right;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-button {
+            padding: 12px 30px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .toggle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .toggle-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        #responseChart {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .warning.show {
+            display: block;
+        }
+
+        .warning-icon {
+            color: #ffc107;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .info-panel {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-panel h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .math-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            header p {
+                font-size: 0.9em;
+            }
+
+            .content {
+                padding: 15px;
+                gap: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .toggle-group {
+                flex-direction: column;
+            }
+
+            .toggle-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>フィードバック制御ブロック図シミュレータ</h1>
+            <p>Feedback Control Block Diagram Simulator</p>
+        </header>
+
+        <div class="content">
+            <!-- Block Diagram -->
+            <div class="section">
+                <h2>ブロック図 (Block Diagram)</h2>
+                <canvas id="blockDiagram"></canvas>
+                <div class="info-panel">
+                    <h3>信号の流れ</h3>
+                    <div class="math-display" id="signalFlow">r(t) → e(t) → u(t) → y(t)</div>
+                    <div class="math-display" id="errorSignal">e(t) = r(t) - y(t)</div>
+                </div>
+            </div>
+
+            <!-- Response Graph -->
+            <div class="section">
+                <h2>ステップ応答 (Step Response)</h2>
+                <canvas id="responseChart"></canvas>
+                <div class="warning" id="stabilityWarning">
+                    <span class="warning-icon">⚠️</span>
+                    <strong>警告:</strong> システムが不安定です。ゲインを調整してください。
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="section controls">
+                <h2>制御パラメータ (Control Parameters)</h2>
+
+                <div class="control-group">
+                    <label>コントローラゲイン (Controller Gain) K</label>
+                    <div class="slider-container">
+                        <input type="range" id="controllerGain" min="0.1" max="10" step="0.1" value="2">
+                        <span class="value-display" id="controllerGainValue">2.0</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>プラントゲイン (Plant Gain) P</label>
+                    <div class="slider-container">
+                        <input type="range" id="plantGain" min="0.1" max="5" step="0.1" value="1">
+                        <span class="value-display" id="plantGainValue">1.0</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>プラント時定数 (Plant Time Constant) τ</label>
+                    <div class="slider-container">
+                        <input type="range" id="plantTimeConstant" min="0.1" max="5" step="0.1" value="1">
+                        <span class="value-display" id="plantTimeConstantValue">1.0 s</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>目標値 (Reference) r</label>
+                    <div class="slider-container">
+                        <input type="range" id="reference" min="0" max="2" step="0.1" value="1">
+                        <span class="value-display" id="referenceValue">1.0</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>動作モード (Operation Mode)</label>
+                    <div class="toggle-group">
+                        <button class="toggle-button active" id="closedLoopBtn">閉ループ (Closed-loop)</button>
+                        <button class="toggle-button" id="openLoopBtn">開ループ (Open-loop)</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>外乱 (Disturbance)</label>
+                    <div class="toggle-group">
+                        <button class="toggle-button" id="disturbanceBtn">外乱を追加 (Add Disturbance)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulation parameters
+        let params = {
+            K: 2.0,           // Controller gain
+            P: 1.0,           // Plant gain
+            tau: 1.0,         // Plant time constant
+            r: 1.0,           // Reference value
+            closedLoop: true, // Closed-loop mode
+            disturbance: false, // Disturbance enabled
+            disturbanceValue: 0.3
+        };
+
+        // Canvas setup for block diagram
+        const canvas = document.getElementById('blockDiagram');
+        const ctx = canvas.getContext('2d');
+
+        // Chart setup
+        let chart = null;
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            drawBlockDiagram();
+            updateChart();
+            renderMath();
+
+            // Event listeners
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                drawBlockDiagram();
+            });
+
+            document.getElementById('controllerGain').addEventListener('input', (e) => {
+                params.K = parseFloat(e.target.value);
+                document.getElementById('controllerGainValue').textContent = params.K.toFixed(1);
+                update();
+            });
+
+            document.getElementById('plantGain').addEventListener('input', (e) => {
+                params.P = parseFloat(e.target.value);
+                document.getElementById('plantGainValue').textContent = params.P.toFixed(1);
+                update();
+            });
+
+            document.getElementById('plantTimeConstant').addEventListener('input', (e) => {
+                params.tau = parseFloat(e.target.value);
+                document.getElementById('plantTimeConstantValue').textContent = params.tau.toFixed(1) + ' s';
+                update();
+            });
+
+            document.getElementById('reference').addEventListener('input', (e) => {
+                params.r = parseFloat(e.target.value);
+                document.getElementById('referenceValue').textContent = params.r.toFixed(1);
+                update();
+            });
+
+            document.getElementById('closedLoopBtn').addEventListener('click', () => {
+                params.closedLoop = true;
+                document.getElementById('closedLoopBtn').classList.add('active');
+                document.getElementById('openLoopBtn').classList.remove('active');
+                update();
+            });
+
+            document.getElementById('openLoopBtn').addEventListener('click', () => {
+                params.closedLoop = false;
+                document.getElementById('openLoopBtn').classList.add('active');
+                document.getElementById('closedLoopBtn').classList.remove('active');
+                update();
+            });
+
+            document.getElementById('disturbanceBtn').addEventListener('click', (e) => {
+                params.disturbance = !params.disturbance;
+                e.target.classList.toggle('active');
+                update();
+            });
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        function drawBlockDiagram() {
+            const w = canvas.getBoundingClientRect().width;
+            const h = canvas.getBoundingClientRect().height;
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.font = '14px sans-serif';
+            ctx.lineWidth = 2;
+
+            // Colors
+            const primaryColor = '#667eea';
+            const secondaryColor = '#764ba2';
+            const signalColor = params.closedLoop ? '#4caf50' : '#ff9800';
+            const disturbanceColor = '#e91e63';
+
+            // Block positions
+            const sumX = 100;
+            const sumY = h / 2;
+            const controllerX = 220;
+            const controllerY = h / 2;
+            const plantX = 380;
+            const plantY = h / 2;
+            const outputX = 520;
+            const outputY = h / 2;
+
+            // Draw reference input
+            ctx.strokeStyle = signalColor;
+            ctx.fillStyle = signalColor;
+            drawArrow(20, sumY, sumX - 30, sumY);
+            ctx.fillStyle = '#000';
+            ctx.fillText('r(t)', 15, sumY - 10);
+
+            // Draw summing junction
+            ctx.strokeStyle = primaryColor;
+            ctx.beginPath();
+            ctx.arc(sumX, sumY, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = '#000';
+            ctx.fillText('+', sumX - 5, sumY - 25);
+            ctx.fillText('-', sumX - 5, sumY + 35);
+
+            // Draw error signal
+            ctx.strokeStyle = signalColor;
+            drawArrow(sumX + 20, sumY, controllerX - 50, sumY);
+            ctx.fillStyle = '#000';
+            ctx.fillText('e(t)', sumX + 35, sumY - 10);
+
+            // Draw controller block
+            ctx.fillStyle = primaryColor;
+            ctx.fillRect(controllerX - 40, controllerY - 25, 80, 50);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('K', controllerX - 8, controllerY + 5);
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#000';
+            ctx.fillText('Controller', controllerX - 30, controllerY + 45);
+
+            // Draw control signal
+            ctx.strokeStyle = signalColor;
+            ctx.fillStyle = signalColor;
+            drawArrow(controllerX + 40, controllerY, plantX - 50, plantY);
+            ctx.fillStyle = '#000';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('u(t)', controllerX + 55, controllerY - 10);
+
+            // Draw plant block
+            ctx.fillStyle = secondaryColor;
+            ctx.fillRect(plantX - 40, plantY - 25, 80, 50);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('P', plantX - 8, plantY + 5);
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#000';
+            ctx.fillText('Plant', plantX - 15, plantY + 45);
+
+            // Draw disturbance (if enabled)
+            if (params.disturbance) {
+                ctx.strokeStyle = disturbanceColor;
+                ctx.fillStyle = disturbanceColor;
+                drawArrow(plantX, plantY - 80, plantX, plantY - 30);
+                ctx.fillStyle = disturbanceColor;
+                ctx.font = '14px sans-serif';
+                ctx.fillText('d(t)', plantX - 20, plantY - 85);
+
+                // Draw summing junction for disturbance
+                ctx.strokeStyle = disturbanceColor;
+                ctx.beginPath();
+                ctx.arc(plantX, plantY - 30, 8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw output signal
+            ctx.strokeStyle = signalColor;
+            ctx.fillStyle = signalColor;
+            drawArrow(plantX + 40, plantY, outputX, outputY);
+            ctx.fillStyle = '#000';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('y(t)', outputX + 5, outputY - 10);
+
+            // Draw feedback path (if closed-loop)
+            if (params.closedLoop) {
+                ctx.strokeStyle = '#4caf50';
+                ctx.fillStyle = '#4caf50';
+                ctx.beginPath();
+                ctx.moveTo(outputX, outputY);
+                ctx.lineTo(outputX, outputY + 60);
+                ctx.lineTo(sumX, outputY + 60);
+                ctx.lineTo(sumX, sumY + 20);
+                ctx.stroke();
+                drawArrow(sumX - 5, sumY + 40, sumX - 5, sumY + 25);
+                ctx.fillStyle = '#000';
+                ctx.fillText('Feedback', outputX - 40, outputY + 75);
+            }
+        }
+
+        function drawArrow(x1, y1, x2, y2) {
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Arrowhead
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - 10 * Math.cos(angle - Math.PI / 6), y2 - 10 * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - 10 * Math.cos(angle + Math.PI / 6), y2 - 10 * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function updateChart() {
+            const data = simulateStepResponse();
+
+            const ctx = document.getElementById('responseChart').getContext('2d');
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.time,
+                    datasets: [
+                        {
+                            label: '目標値 r(t)',
+                            data: data.reference,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            tension: 0
+                        },
+                        {
+                            label: '出力 y(t)',
+                            data: data.output,
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: '誤差 e(t)',
+                            data: data.error,
+                            borderColor: '#ff9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: params.closedLoop ? '閉ループ応答' : '開ループ応答',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            },
+                            ticks: {
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '信号値'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Check stability
+            checkStability(data.output);
+        }
+
+        function simulateStepResponse() {
+            const dt = 0.01;
+            const tMax = 15;
+            const steps = Math.floor(tMax / dt);
+
+            const time = [];
+            const reference = [];
+            const output = [];
+            const error = [];
+
+            let y = 0;
+            let u = 0;
+
+            for (let i = 0; i < steps; i++) {
+                const t = i * dt;
+                time.push(t.toFixed(2));
+
+                const r = params.r;
+                reference.push(r);
+
+                // Error signal
+                const e = params.closedLoop ? (r - y) : r;
+                error.push(e);
+
+                // Control signal
+                u = params.K * e;
+
+                // Plant dynamics: first-order system
+                // dy/dt = (P*u - y) / tau
+                let input = params.P * u;
+
+                // Add disturbance
+                if (params.disturbance && t > 5) {
+                    input += params.disturbanceValue;
+                }
+
+                const dydt = (input - y) / params.tau;
+                y += dydt * dt;
+
+                output.push(y);
+            }
+
+            return { time, reference, output, error };
+        }
+
+        function checkStability(output) {
+            const warning = document.getElementById('stabilityWarning');
+            const lastValues = output.slice(-50);
+            const maxValue = Math.max(...lastValues);
+            const minValue = Math.min(...lastValues);
+
+            // Check if oscillating or diverging
+            if (maxValue > 10 || minValue < -10 || (maxValue - minValue) > 5) {
+                warning.classList.add('show');
+            } else {
+                warning.classList.remove('show');
+            }
+        }
+
+        function renderMath() {
+            if (typeof katex !== 'undefined') {
+                katex.render('r(t) \\rightarrow e(t) \\rightarrow u(t) \\rightarrow y(t)',
+                    document.getElementById('signalFlow'));
+                katex.render('e(t) = r(t) - y(t)',
+                    document.getElementById('errorSignal'));
+            }
+        }
+
+        function update() {
+            drawBlockDiagram();
+            updateChart();
+        }
+
+        // Wait for KaTeX to load
+        const katexInterval = setInterval(() => {
+            if (typeof katex !== 'undefined') {
+                clearInterval(katexInterval);
+                init();
+            }
+        }, 100);
+
+        // Fallback timeout
+        setTimeout(() => {
+            if (typeof katex === 'undefined') {
+                console.warn('KaTeX failed to load, using plain text for math');
+                init();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
