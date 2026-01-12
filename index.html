@@ -90,6 +90,16 @@
             border-color: #667eea;
         }
 
+        .chapter-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .chapter-link:hover .chapter-title {
+            color: #667eea;
+        }
+
         .chapter-number {
             display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -114,6 +124,53 @@
         .chapter-subtitle {
             font-size: 0.9em;
             color: #666;
+        }
+
+        .note-links {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .note-link {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .note-link.beginner {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .note-link.beginner:hover {
+            background: #1976d2;
+            color: white;
+        }
+
+        .note-link.intermediate {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .note-link.intermediate:hover {
+            background: #f57c00;
+            color: white;
+        }
+
+        .note-link.advanced {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .note-link.advanced:hover {
+            background: #c2185b;
+            color: white;
         }
 
         .chapter-card.midterm {
@@ -179,95 +236,200 @@
             <h2 class="section-title">講義一覧 (15章)</h2>
 
             <div class="chapters-grid">
-                <a href="chapters/ch01_overview/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">1</div>
-                    <div class="chapter-title">フィードバック制御概論</div>
-                    <div class="chapter-subtitle">ブロック図シミュレータで制御の基礎を学ぶ</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch01_overview/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">1</div>
+                        <div class="chapter-title">フィードバック制御概論</div>
+                        <div class="chapter-subtitle">ブロック図シミュレータで制御の基礎を学ぶ</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch01_overview/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch01_overview/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch01_overview/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch02_laplace/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">2</div>
-                    <div class="chapter-title">複素数とラプラス変換</div>
-                    <div class="chapter-subtitle">制御工学の数学的基礎</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch02_laplace/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">2</div>
+                        <div class="chapter-title">複素数とラプラス変換</div>
+                        <div class="chapter-subtitle">制御工学の数学的基礎</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch02_laplace/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch02_laplace/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch02_laplace/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch03_lti/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">3</div>
-                    <div class="chapter-title">LTIシステムの表現</div>
-                    <div class="chapter-subtitle">線形時不変システムの基本概念</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch03_lti/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">3</div>
+                        <div class="chapter-title">LTIシステムの表現</div>
+                        <div class="chapter-subtitle">線形時不変システムの基本概念</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch03_lti/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch03_lti/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch03_lti/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch04_transfer/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">4</div>
-                    <div class="chapter-title">伝達関数</div>
-                    <div class="chapter-subtitle">システムの入出力関係を理解する</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch04_transfer/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">4</div>
+                        <div class="chapter-title">伝達関数</div>
+                        <div class="chapter-subtitle">システムの入出力関係を理解する</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch04_transfer/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch04_transfer/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch04_transfer/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch05_frequency/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">5</div>
-                    <div class="chapter-title">周波数伝達関数</div>
-                    <div class="chapter-subtitle">周波数領域での解析手法</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch05_frequency/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">5</div>
+                        <div class="chapter-title">周波数伝達関数</div>
+                        <div class="chapter-subtitle">周波数領域での解析手法</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch05_frequency/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch05_frequency/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch05_frequency/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch06_statespace/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">6</div>
-                    <div class="chapter-title">状態空間表現</div>
-                    <div class="chapter-subtitle">現代制御理論の基礎</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch06_statespace/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">6</div>
+                        <div class="chapter-title">状態空間表現</div>
+                        <div class="chapter-subtitle">現代制御理論の基礎</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch06_statespace/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch06_statespace/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch06_statespace/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch07_midterm/interactive/index.html" class="chapter-card midterm">
-                    <div class="chapter-number">7</div>
-                    <div class="chapter-title">中間試験</div>
-                    <div class="chapter-subtitle">前半の復習と確認問題</div>
-                </a>
+                <div class="chapter-card midterm">
+                    <a href="chapters/ch07_midterm/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">7</div>
+                        <div class="chapter-title">中間試験</div>
+                        <div class="chapter-subtitle">前半の復習と確認問題</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch07_midterm/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch07_midterm/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch07_midterm/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch08_fbff/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">8</div>
-                    <div class="chapter-title">FB制御とFF制御</div>
-                    <div class="chapter-subtitle">フィードバック・フィードフォワード制御</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch08_fbff/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">8</div>
+                        <div class="chapter-title">FB制御とFF制御</div>
+                        <div class="chapter-subtitle">フィードバック・フィードフォワード制御</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch08_fbff/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch08_fbff/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch08_fbff/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch09_stability_lti/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">9</div>
-                    <div class="chapter-title">LTIシステムの安定性</div>
-                    <div class="chapter-subtitle">システムの安定判別法</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch09_stability_lti/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">9</div>
+                        <div class="chapter-title">LTIシステムの安定性</div>
+                        <div class="chapter-subtitle">システムの安定判別法</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch09_stability_lti/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch09_stability_lti/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch09_stability_lti/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch10_stability_fb/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">10</div>
-                    <div class="chapter-title">FBシステムの安定性</div>
-                    <div class="chapter-subtitle">フィードバック系の安定解析</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch10_stability_fb/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">10</div>
+                        <div class="chapter-title">FBシステムの安定性</div>
+                        <div class="chapter-subtitle">フィードバック系の安定解析</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch10_stability_fb/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch10_stability_fb/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch10_stability_fb/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch11_transient/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">11</div>
-                    <div class="chapter-title">制御系の過渡特性</div>
-                    <div class="chapter-subtitle">時間応答の解析</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch11_transient/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">11</div>
+                        <div class="chapter-title">制御系の過渡特性</div>
+                        <div class="chapter-subtitle">時間応答の解析</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch11_transient/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch11_transient/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch11_transient/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch12_steady/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">12</div>
-                    <div class="chapter-title">制御系の定常特性</div>
-                    <div class="chapter-subtitle">定常偏差と制御精度</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch12_steady/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">12</div>
+                        <div class="chapter-title">制御系の定常特性</div>
+                        <div class="chapter-subtitle">定常偏差と制御精度</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch12_steady/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch12_steady/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch12_steady/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch13_freq_char/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">13</div>
-                    <div class="chapter-title">制御系の周波数特性</div>
-                    <div class="chapter-subtitle">ボード線図とナイキスト線図</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch13_freq_char/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">13</div>
+                        <div class="chapter-title">制御系の周波数特性</div>
+                        <div class="chapter-subtitle">ボード線図とナイキスト線図</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch13_freq_char/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch13_freq_char/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch13_freq_char/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch14_design/interactive/index.html" class="chapter-card">
-                    <div class="chapter-number">14</div>
-                    <div class="chapter-title">制御系の設計</div>
-                    <div class="chapter-subtitle">PID制御と補償器設計</div>
-                </a>
+                <div class="chapter-card">
+                    <a href="chapters/ch14_design/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">14</div>
+                        <div class="chapter-title">制御系の設計</div>
+                        <div class="chapter-subtitle">PID制御と補償器設計</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch14_design/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch14_design/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch14_design/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
 
-                <a href="chapters/ch15_final/interactive/index.html" class="chapter-card final">
-                    <div class="chapter-number">15</div>
-                    <div class="chapter-title">期末試験対策</div>
-                    <div class="chapter-subtitle">総合復習と演習問題</div>
-                </a>
+                <div class="chapter-card final">
+                    <a href="chapters/ch15_final/interactive/index.html" class="chapter-link">
+                        <div class="chapter-number">15</div>
+                        <div class="chapter-title">期末試験対策</div>
+                        <div class="chapter-subtitle">総合復習と演習問題</div>
+                    </a>
+                    <div class="note-links">
+                        <a href="chapters/ch15_final/note_beginner.md" class="note-link beginner">初級</a>
+                        <a href="chapters/ch15_final/note_intermediate.md" class="note-link intermediate">中級</a>
+                        <a href="chapters/ch15_final/note_advanced.md" class="note-link advanced">上級</a>
+                    </div>
+                </div>
             </div>
         </div>
 
