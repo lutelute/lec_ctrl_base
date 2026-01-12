@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フィードバック制御 - インタラクティブ学習ダッシュボード</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .subtitle {
+            font-size: 1em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .chapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .chapter-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: block;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .chapter-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 45px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .chapter-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .chapter-subtitle {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .chapter-card.midterm {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+        }
+
+        .chapter-card.midterm .chapter-number {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        }
+
+        .chapter-card.final {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .chapter-card.final .chapter-number {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .chapters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>フィードバック制御</h1>
+            <p>インタラクティブなシミュレーションを通じて、制御工学の基礎から応用までを学習できる教材です。</p>
+            <p class="subtitle">Feedback Control - Interactive Learning Dashboard</p>
+        </header>
+
+        <div class="content">
+            <h2 class="section-title">講義一覧 (15章)</h2>
+
+            <div class="chapters-grid">
+                <a href="chapters/ch01_overview/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">1</div>
+                    <div class="chapter-title">フィードバック制御概論</div>
+                    <div class="chapter-subtitle">ブロック図シミュレータで制御の基礎を学ぶ</div>
+                </a>
+
+                <a href="chapters/ch02_laplace/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">2</div>
+                    <div class="chapter-title">複素数とラプラス変換</div>
+                    <div class="chapter-subtitle">制御工学の数学的基礎</div>
+                </a>
+
+                <a href="chapters/ch03_lti/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">3</div>
+                    <div class="chapter-title">LTIシステムの表現</div>
+                    <div class="chapter-subtitle">線形時不変システムの基本概念</div>
+                </a>
+
+                <a href="chapters/ch04_transfer/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">4</div>
+                    <div class="chapter-title">伝達関数</div>
+                    <div class="chapter-subtitle">システムの入出力関係を理解する</div>
+                </a>
+
+                <a href="chapters/ch05_frequency/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">5</div>
+                    <div class="chapter-title">周波数伝達関数</div>
+                    <div class="chapter-subtitle">周波数領域での解析手法</div>
+                </a>
+
+                <a href="chapters/ch06_statespace/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">6</div>
+                    <div class="chapter-title">状態空間表現</div>
+                    <div class="chapter-subtitle">現代制御理論の基礎</div>
+                </a>
+
+                <a href="chapters/ch07_midterm/interactive/index.html" class="chapter-card midterm">
+                    <div class="chapter-number">7</div>
+                    <div class="chapter-title">中間試験</div>
+                    <div class="chapter-subtitle">前半の復習と確認問題</div>
+                </a>
+
+                <a href="chapters/ch08_fbff/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">8</div>
+                    <div class="chapter-title">FB制御とFF制御</div>
+                    <div class="chapter-subtitle">フィードバック・フィードフォワード制御</div>
+                </a>
+
+                <a href="chapters/ch09_stability_lti/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">9</div>
+                    <div class="chapter-title">LTIシステムの安定性</div>
+                    <div class="chapter-subtitle">システムの安定判別法</div>
+                </a>
+
+                <a href="chapters/ch10_stability_fb/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">10</div>
+                    <div class="chapter-title">FBシステムの安定性</div>
+                    <div class="chapter-subtitle">フィードバック系の安定解析</div>
+                </a>
+
+                <a href="chapters/ch11_transient/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">11</div>
+                    <div class="chapter-title">制御系の過渡特性</div>
+                    <div class="chapter-subtitle">時間応答の解析</div>
+                </a>
+
+                <a href="chapters/ch12_steady/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">12</div>
+                    <div class="chapter-title">制御系の定常特性</div>
+                    <div class="chapter-subtitle">定常偏差と制御精度</div>
+                </a>
+
+                <a href="chapters/ch13_freq_char/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">13</div>
+                    <div class="chapter-title">制御系の周波数特性</div>
+                    <div class="chapter-subtitle">ボード線図とナイキスト線図</div>
+                </a>
+
+                <a href="chapters/ch14_design/interactive/index.html" class="chapter-card">
+                    <div class="chapter-number">14</div>
+                    <div class="chapter-title">制御系の設計</div>
+                    <div class="chapter-subtitle">PID制御と補償器設計</div>
+                </a>
+
+                <a href="chapters/ch15_final/interactive/index.html" class="chapter-card final">
+                    <div class="chapter-number">15</div>
+                    <div class="chapter-title">期末試験対策</div>
+                    <div class="chapter-subtitle">総合復習と演習問題</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>フィードバック制御 インタラクティブ学習教材</p>
+            <p>Feedback Control Interactive Learning Materials</p>
+        </div>
+    </div>
+</body>
+</html>
