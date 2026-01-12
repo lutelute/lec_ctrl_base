@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第12章 制御系の定常特性 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f5f5f5;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+            height: 40px;
+        }
+
+        .slider-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+            font-size: 16px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .result-box h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .result-box .value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .result-box .formula {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box h4 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .preset-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .comparison-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .comparison-card input[type="checkbox"] {
+            margin-right: 8px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .comparison-card label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .tab {
+                min-width: 100px;
+                padding: 12px 10px;
+                font-size: 14px;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .result-box .value {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第12章 制御系の定常特性</h1>
+            <p>インタラクティブ学習ツール - システムの型と定常偏差の関係を理解する</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">定常偏差可視化</button>
+            <button class="tab" onclick="switchTab(1)">エラー定数計算</button>
+            <button class="tab" onclick="switchTab(2)">比較シミュレータ</button>
+        </div>
+
+        <!-- Tab 1: 定常偏差可視化ツール -->
+        <div class="tab-content active">
+            <h2>定常偏差可視化ツール</h2>
+            <p>システムの型と入力信号の種類を選択して、定常偏差の変化を観察できます。</p>
+
+            <div class="control-group">
+                <label for="systemType">システムの型 (System Type)</label>
+                <select id="systemType" onchange="updateVisualization()">
+                    <option value="0">Type 0 (積分器なし)</option>
+                    <option value="1" selected>Type 1 (積分器1個)</option>
+                    <option value="2">Type 2 (積分器2個)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="inputType">入力信号の種類 (Input Type)</label>
+                <select id="inputType" onchange="updateVisualization()">
+                    <option value="step" selected>ステップ入力 (位置入力)</option>
+                    <option value="ramp">ランプ入力 (速度入力)</option>
+                    <option value="parabola">パラボラ入力 (加速度入力)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    ゲイン K = <span class="slider-value" id="gainValue">10</span>
+                </label>
+                <input type="range" id="gain" min="1" max="50" value="10" step="1" oninput="updateVisualization()">
+            </div>
+
+            <div class="chart-container">
+                <canvas id="responseChart"></canvas>
+            </div>
+
+            <div class="result-box">
+                <h3>定常偏差 (Steady-State Error)</h3>
+                <div class="value" id="steadyStateError">0</div>
+                <div class="formula" id="errorFormula"></div>
+            </div>
+
+            <div class="info-box">
+                <h4>📖 システムの型と定常偏差の関係</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>システムの型</th>
+                            <th>ステップ入力</th>
+                            <th>ランプ入力</th>
+                            <th>パラボラ入力</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Type 0</strong></td>
+                            <td>$\frac{1}{1+K_p}$</td>
+                            <td>$\infty$</td>
+                            <td>$\infty$</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Type 1</strong></td>
+                            <td>$0$</td>
+                            <td>$\frac{1}{K_v}$</td>
+                            <td>$\infty$</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Type 2</strong></td>
+                            <td>$0$</td>
+                            <td>$0$</td>
+                            <td>$\frac{1}{K_a}$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: エラー定数計算ツール -->
+        <div class="tab-content">
+            <h2>エラー定数計算ツール</h2>
+            <p>プリセット伝達関数から誤差定数を自動計算します。</p>
+
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="calculatePreset(0, 10)">
+                    Type 0: $G(s) = \frac{10}{s+2}$
+                </button>
+                <button class="preset-btn" onclick="calculatePreset(1, 10)">
+                    Type 1: $G(s) = \frac{10}{s(s+2)}$
+                </button>
+                <button class="preset-btn" onclick="calculatePreset(2, 10)">
+                    Type 2: $G(s) = \frac{10}{s^2(s+2)}$
+                </button>
+            </div>
+
+            <div class="result-box">
+                <h3>計算結果</h3>
+                <div style="text-align: left; font-size: 18px;">
+                    <p><strong>システムの型:</strong> <span id="calcSystemType">-</span></p>
+                    <p><strong>位置定数 $K_p$:</strong> <span id="calcKp">-</span></p>
+                    <p><strong>速度定数 $K_v$:</strong> <span id="calcKv">-</span></p>
+                    <p><strong>加速度定数 $K_a$:</strong> <span id="calcKa">-</span></p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>📝 計算方法</h4>
+                <p><strong>システムの型 (Type N):</strong> 開ループ伝達関数 $G(s)$ における原点の極（$s=0$）の数</p>
+                <p><strong>位置定数:</strong> $K_p = \lim_{s \to 0} G(s)$</p>
+                <p><strong>速度定数:</strong> $K_v = \lim_{s \to 0} sG(s)$</p>
+                <p><strong>加速度定数:</strong> $K_a = \lim_{s \to 0} s^2G(s)$</p>
+            </div>
+
+            <div class="info-box">
+                <h4>🎯 定常偏差の計算</h4>
+                <p><strong>ステップ入力に対する定常偏差:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Type 0: $e_{ss} = \frac{1}{1+K_p}$</li>
+                    <li>Type 1以上: $e_{ss} = 0$</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>ランプ入力に対する定常偏差:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Type 0: $e_{ss} = \infty$ (発散)</li>
+                    <li>Type 1: $e_{ss} = \frac{1}{K_v}$</li>
+                    <li>Type 2以上: $e_{ss} = 0$</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>パラボラ入力に対する定常偏差:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Type 0,1: $e_{ss} = \infty$ (発散)</li>
+                    <li>Type 2: $e_{ss} = \frac{1}{K_a}$</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tab 3: 比較シミュレータ -->
+        <div class="tab-content">
+            <h2>比較シミュレータ</h2>
+            <p>複数のシステムの型を同時に比較して、定常偏差の違いを視覚的に理解できます。</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>システム選択</h4>
+                    <label>
+                        <input type="checkbox" id="compareType0" checked onchange="updateComparison()">
+                        Type 0 システム
+                    </label>
+                    <label>
+                        <input type="checkbox" id="compareType1" checked onchange="updateComparison()">
+                        Type 1 システム
+                    </label>
+                    <label>
+                        <input type="checkbox" id="compareType2" checked onchange="updateComparison()">
+                        Type 2 システム
+                    </label>
+                </div>
+
+                <div class="comparison-card">
+                    <h4>入力設定</h4>
+                    <label for="compareInput">入力の種類</label>
+                    <select id="compareInput" onchange="updateComparison()" style="width: 100%; padding: 8px; margin-top: 10px;">
+                        <option value="step" selected>ステップ入力</option>
+                        <option value="ramp">ランプ入力</option>
+                        <option value="parabola">パラボラ入力</option>
+                    </select>
+                    <label style="margin-top: 15px;">
+                        ゲイン K = <span class="slider-value" id="compareGainValue">10</span>
+                    </label>
+                    <input type="range" id="compareGain" min="1" max="50" value="10" step="1"
+                           oninput="document.getElementById('compareGainValue').textContent = this.value; updateComparison();"
+                           style="width: 100%; margin-top: 10px;">
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+
+            <div class="result-box">
+                <h3>定常偏差の比較</h3>
+                <div style="text-align: left; font-size: 18px;">
+                    <p><strong>Type 0:</strong> <span id="errorType0">-</span></p>
+                    <p><strong>Type 1:</strong> <span id="errorType1">-</span></p>
+                    <p><strong>Type 2:</strong> <span id="errorType2">-</span></p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>💡 観察のポイント</h4>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li><strong>ステップ入力:</strong> Type 1以上のシステムは定常偏差がゼロになる</li>
+                    <li><strong>ランプ入力:</strong> Type 2以上のシステムは定常偏差がゼロになる</li>
+                    <li><strong>システムの型が高いほど:</strong> より複雑な入力に追従できる</li>
+                    <li><strong>ゲインK:</strong> 定常偏差を小さくするが、安定性に影響する</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let responseChart = null;
+        let comparisonChart = null;
+
+        // タブ切り替え
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            contents.forEach((content, i) => {
+                if (i === index) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // チャートを再描画
+            if (index === 0) {
+                updateVisualization();
+            } else if (index === 2) {
+                updateComparison();
+            }
+        }
+
+        // 定常偏差の計算
+        function calculateSteadyStateError(systemType, inputType, K) {
+            const Kp = (systemType === 0) ? K : Infinity;
+            const Kv = (systemType >= 1) ? K : 0;
+            const Ka = (systemType >= 2) ? K : 0;
+
+            switch(inputType) {
+                case 'step':
+                    return (systemType === 0) ? 1 / (1 + Kp) : 0;
+                case 'ramp':
+                    if (systemType === 0) return Infinity;
+                    if (systemType === 1) return 1 / Kv;
+                    return 0;
+                case 'parabola':
+                    if (systemType <= 1) return Infinity;
+                    return 1 / Ka;
+                default:
+                    return 0;
+            }
+        }
+
+        // 入力信号の生成
+        function generateInput(inputType, t) {
+            switch(inputType) {
+                case 'step':
+                    return t >= 0 ? 1 : 0;
+                case 'ramp':
+                    return t >= 0 ? t : 0;
+                case 'parabola':
+                    return t >= 0 ? 0.5 * t * t : 0;
+                default:
+                    return 0;
+            }
+        }
+
+        // 時間応答の計算（簡略化モデル）
+        function calculateTimeResponse(systemType, inputType, K, t) {
+            const tau = 1.0;
+            const input = generateInput(inputType, t);
+
+            if (t < 0) return 0;
+
+            let response = 0;
+            const expTerm = Math.exp(-t / tau);
+
+            switch(systemType) {
+                case 0:
+                    // Type 0 システム
+                    if (inputType === 'step') {
+                        response = (K / (1 + K)) * (1 - expTerm);
+                    } else if (inputType === 'ramp') {
+                        response = K * t / (1 + K) - K * tau * (1 - expTerm) / (1 + K);
+                    } else {
+                        response = K * 0.5 * t * t / (1 + K);
+                    }
+                    break;
+
+                case 1:
+                    // Type 1 システム
+                    if (inputType === 'step') {
+                        response = 1 - expTerm;
+                    } else if (inputType === 'ramp') {
+                        response = t - (1 / K) * (1 - expTerm);
+                    } else {
+                        response = 0.5 * t * t - t / K;
+                    }
+                    break;
+
+                case 2:
+                    // Type 2 システム
+                    if (inputType === 'step') {
+                        response = 1 - expTerm;
+                    } else if (inputType === 'ramp') {
+                        response = t - tau * (1 - expTerm);
+                    } else {
+                        response = 0.5 * t * t - (1 / K) * (1 - expTerm);
+                    }
+                    break;
+            }
+
+            return response;
+        }
+
+        // 可視化の更新
+        function updateVisualization() {
+            const systemType = parseInt(document.getElementById('systemType').value);
+            const inputType = document.getElementById('inputType').value;
+            const K = parseInt(document.getElementById('gain').value);
+
+            document.getElementById('gainValue').textContent = K;
+
+            // 定常偏差の計算
+            const ess = calculateSteadyStateError(systemType, inputType, K);
+
+            // 定常偏差の表示
+            const essDisplay = document.getElementById('steadyStateError');
+            if (ess === Infinity) {
+                essDisplay.textContent = '∞ (発散)';
+                essDisplay.style.color = '#ff6b6b';
+            } else {
+                essDisplay.textContent = ess.toFixed(4);
+                essDisplay.style.color = ess === 0 ? '#51cf66' : 'white';
+            }
+
+            // 公式の表示
+            const formulaDisplay = document.getElementById('errorFormula');
+            let formula = '';
+
+            if (inputType === 'step') {
+                if (systemType === 0) {
+                    formula = `e_ss = 1/(1+K_p) = 1/(1+${K}) = ${ess.toFixed(4)}`;
+                } else {
+                    formula = `e_ss = 0 (Type ${systemType} システムはステップ入力に完全追従)`;
+                }
+            } else if (inputType === 'ramp') {
+                if (systemType === 0) {
+                    formula = `e_ss = ∞ (Type 0 システムはランプ入力に追従できない)`;
+                } else if (systemType === 1) {
+                    formula = `e_ss = 1/K_v = 1/${K} = ${ess.toFixed(4)}`;
+                } else {
+                    formula = `e_ss = 0 (Type ${systemType} システムはランプ入力に完全追従)`;
+                }
+            } else {
+                if (systemType <= 1) {
+                    formula = `e_ss = ∞ (Type ${systemType} システムはパラボラ入力に追従できない)`;
+                } else {
+                    formula = `e_ss = 1/K_a = 1/${K} = ${ess.toFixed(4)}`;
+                }
+            }
+
+            formulaDisplay.textContent = formula;
+
+            // グラフの更新
+            const ctx = document.getElementById('responseChart');
+            const tMax = 10;
+            const dt = 0.05;
+            const timePoints = [];
+            const inputData = [];
+            const outputData = [];
+
+            for (let t = 0; t <= tMax; t += dt) {
+                timePoints.push(t);
+                inputData.push({x: t, y: generateInput(inputType, t)});
+                outputData.push({x: t, y: calculateTimeResponse(systemType, inputType, K, t)});
+            }
+
+            if (responseChart) {
+                responseChart.destroy();
+            }
+
+            responseChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: '目標値 r(t)',
+                            data: inputData,
+                            showLine: true,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            borderDash: [5, 5]
+                        },
+                        {
+                            label: '出力 y(t)',
+                            data: outputData,
+                            showLine: true,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Type ${systemType} システムの時間応答 (K=${K})`,
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]',
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            min: 0,
+                            max: tMax
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '応答',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // プリセット計算
+        function calculatePreset(systemType, K) {
+            document.getElementById('calcSystemType').textContent = `Type ${systemType}`;
+
+            const Kp = (systemType === 0) ? K : Infinity;
+            const Kv = (systemType >= 1) ? K : 0;
+            const Ka = (systemType >= 2) ? K : 0;
+
+            document.getElementById('calcKp').textContent = Kp === Infinity ? '∞' : Kp.toFixed(2);
+            document.getElementById('calcKv').textContent = Kv === 0 ? '0' : Kv.toFixed(2);
+            document.getElementById('calcKa').textContent = Ka === 0 ? '0' : Ka.toFixed(2);
+        }
+
+        // 比較シミュレータの更新
+        function updateComparison() {
+            const includeType0 = document.getElementById('compareType0').checked;
+            const includeType1 = document.getElementById('compareType1').checked;
+            const includeType2 = document.getElementById('compareType2').checked;
+            const inputType = document.getElementById('compareInput').value;
+            const K = parseInt(document.getElementById('compareGain').value);
+
+            const tMax = 10;
+            const dt = 0.05;
+            const datasets = [];
+
+            // 目標値
+            const inputData = [];
+            for (let t = 0; t <= tMax; t += dt) {
+                inputData.push({x: t, y: generateInput(inputType, t)});
+            }
+
+            datasets.push({
+                label: '目標値 r(t)',
+                data: inputData,
+                showLine: true,
+                borderColor: 'rgba(0, 0, 0, 0.8)',
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                borderDash: [5, 5]
+            });
+
+            // Type 0
+            if (includeType0) {
+                const data = [];
+                for (let t = 0; t <= tMax; t += dt) {
+                    const y = calculateTimeResponse(0, inputType, K, t);
+                    if (!isNaN(y) && isFinite(y)) {
+                        data.push({x: t, y: y});
+                    }
+                }
+                datasets.push({
+                    label: 'Type 0',
+                    data: data,
+                    showLine: true,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0
+                });
+
+                const ess0 = calculateSteadyStateError(0, inputType, K);
+                document.getElementById('errorType0').textContent =
+                    ess0 === Infinity ? '∞ (発散)' : ess0.toFixed(4);
+            } else {
+                document.getElementById('errorType0').textContent = '-';
+            }
+
+            // Type 1
+            if (includeType1) {
+                const data = [];
+                for (let t = 0; t <= tMax; t += dt) {
+                    const y = calculateTimeResponse(1, inputType, K, t);
+                    if (!isNaN(y) && isFinite(y)) {
+                        data.push({x: t, y: y});
+                    }
+                }
+                datasets.push({
+                    label: 'Type 1',
+                    data: data,
+                    showLine: true,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0
+                });
+
+                const ess1 = calculateSteadyStateError(1, inputType, K);
+                document.getElementById('errorType1').textContent =
+                    ess1 === Infinity ? '∞ (発散)' : ess1.toFixed(4);
+            } else {
+                document.getElementById('errorType1').textContent = '-';
+            }
+
+            // Type 2
+            if (includeType2) {
+                const data = [];
+                for (let t = 0; t <= tMax; t += dt) {
+                    const y = calculateTimeResponse(2, inputType, K, t);
+                    if (!isNaN(y) && isFinite(y)) {
+                        data.push({x: t, y: y});
+                    }
+                }
+                datasets.push({
+                    label: 'Type 2',
+                    data: data,
+                    showLine: true,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0
+                });
+
+                const ess2 = calculateSteadyStateError(2, inputType, K);
+                document.getElementById('errorType2').textContent =
+                    ess2 === Infinity ? '∞ (発散)' : ess2.toFixed(4);
+            } else {
+                document.getElementById('errorType2').textContent = '-';
+            }
+
+            // グラフの更新
+            const ctx = document.getElementById('comparisonChart');
+
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            comparisonChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: 14 }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `システムの型による応答の比較 (K=${K})`,
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]',
+                                font: { size: 14 }
+                            },
+                            min: 0,
+                            max: tMax
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '応答',
+                                font: { size: 14 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初期化
+        window.addEventListener('load', function() {
+            updateVisualization();
+            updateComparison();
+        });
+    </script>
+</body>
+</html>

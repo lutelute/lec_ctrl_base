@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第11章 制御系の過渡特性 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tool-section {
+            margin-bottom: 30px;
+        }
+
+        .tool-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-field input,
+        .input-field select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-field input[type="range"] {
+            padding: 0;
+            border: none;
+            height: 6px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .input-field input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-field input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #zeta-display {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .output-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .math-output {
+            font-size: 1.2em;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c33;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #efe;
+            border-left: 4px solid #4c4;
+            padding: 15px;
+            border-radius: 8px;
+            color: #363;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1976d2;
+        }
+
+        .value-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .value-card .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .value-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .value-card .unit {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                min-width: 100%;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第11章 制御系の過渡特性</h1>
+            <p>インタラクティブ学習ツール - Interactive Learning Tool</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('step-response')">ステップ応答シミュレータ</button>
+            <button class="tab-button" onclick="showTab('pole-zero')">極・零点プロット</button>
+            <button class="tab-button" onclick="showTab('characteristics')">特性値計算機</button>
+        </div>
+
+        <!-- Tab 1: Step Response Simulator -->
+        <div id="step-response-tab" class="tab-content active">
+            <div class="tool-section">
+                <h2>ステップ応答シミュレータ (Step Response Simulator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> 減衰比 ζ と固有振動数 ωₙ を入力して「計算」をクリックすると、
+                    2次系のステップ応答と特性値が表示されます。
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>減衰比 (Damping Ratio) ζ: <span id="zeta-display">0.5</span></label>
+                        <input type="range" id="zeta-slider" value="0.5" step="0.05" min="0" max="2" oninput="updateZetaValue(this.value)" style="width: 100%; margin-bottom: 10px;">
+                        <input type="number" id="zeta" value="0.5" step="0.05" min="0" max="2" oninput="updateZetaSlider(this.value)">
+                    </div>
+                    <div class="input-field">
+                        <label>固有振動数 (Natural Frequency) ωₙ [rad/s]:</label>
+                        <input type="number" id="omega-n" value="2" step="0.1" min="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateStepResponse()">計算</button>
+                    <button class="btn btn-secondary" onclick="clearResponse()">クリア</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="stepResponseChart"></canvas>
+                </div>
+
+                <div class="output-box">
+                    <h3>伝達関数 (Transfer Function)</h3>
+                    <div id="transfer-function"></div>
+                </div>
+
+                <div class="tool-section">
+                    <h2>特性値 (Characteristic Values)</h2>
+                    <div class="input-group">
+                        <div class="value-card">
+                            <div class="label">立ち上がり時間 Tr</div>
+                            <div class="value" id="tr-value">-</div>
+                            <div class="unit">秒</div>
+                        </div>
+                        <div class="value-card">
+                            <div class="label">ピーク時間 Tp</div>
+                            <div class="value" id="tp-value">-</div>
+                            <div class="unit">秒</div>
+                        </div>
+                        <div class="value-card">
+                            <div class="label">整定時間 Ts (2%)</div>
+                            <div class="value" id="ts-value">-</div>
+                            <div class="unit">秒</div>
+                        </div>
+                        <div class="value-card">
+                            <div class="label">最大オーバーシュート Mp</div>
+                            <div class="value" id="mp-value">-</div>
+                            <div class="unit">%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-box">
+                    <h3>計算式 (Formulas)</h3>
+                    <div id="formulas-output"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Pole-Zero Plot -->
+        <div id="pole-zero-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>極・零点プロット (Pole-Zero Plot)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> システムパラメータを入力すると、複素s平面上に極と零点が表示されます。左半平面（σ < 0）が安定領域です。
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>減衰比 (Damping Ratio) ζ:</label>
+                        <input type="number" id="zeta-pz" value="0.5" step="0.1" min="0" max="2">
+                    </div>
+                    <div class="input-field">
+                        <label>固有振動数 (Natural Frequency) ωₙ [rad/s]:</label>
+                        <input type="number" id="omega-n-pz" value="2" step="0.1" min="0.1">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>零点の実部 (Zero Real Part) [オプション]:</label>
+                        <input type="number" id="zero-real" value="" step="0.1" placeholder="例: -1.0">
+                    </div>
+                    <div class="input-field">
+                        <label>零点の虚部 (Zero Imag Part) [オプション]:</label>
+                        <input type="number" id="zero-imag" value="" step="0.1" placeholder="例: 0">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="plotPoleZero()">プロット</button>
+                    <button class="btn btn-secondary" onclick="clearPoleZero()">クリア</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="poleZeroChart"></canvas>
+                </div>
+
+                <div class="output-box">
+                    <h3>極の位置 (Pole Locations)</h3>
+                    <div id="pole-locations"></div>
+                </div>
+
+                <div class="output-box">
+                    <h3>零点の位置 (Zero Locations)</h3>
+                    <div id="zero-locations">零点が入力されていません</div>
+                </div>
+
+                <div class="output-box">
+                    <h3>システム特性 (System Characteristics)</h3>
+                    <div id="system-characteristics"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Characteristic Value Calculator -->
+        <div id="characteristics-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>特性値計算機 (Characteristic Value Calculator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> システムパラメータを入力すると、全ての特性値と計算式が表示されます。
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>減衰比 (Damping Ratio) ζ:</label>
+                        <input type="number" id="zeta-calc" value="0.5" step="0.1" min="0" max="2">
+                    </div>
+                    <div class="input-field">
+                        <label>固有振動数 (Natural Frequency) ωₙ [rad/s]:</label>
+                        <input type="number" id="omega-n-calc" value="2" step="0.1" min="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateCharacteristics()">計算</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>伝達関数 (Transfer Function)</h3>
+                    <div id="tf-calc"></div>
+                </div>
+
+                <div class="tool-section">
+                    <h2>特性値の詳細計算 (Detailed Calculations)</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>特性値</th>
+                                <th>計算式</th>
+                                <th>数値</th>
+                            </tr>
+                        </thead>
+                        <tbody id="characteristics-table">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #999;">パラメータを入力して計算してください</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tool-section">
+                    <h2>特性値の基本公式 (Basic Formulas)</h2>
+
+                    <div class="output-box">
+                        <strong>2次系標準形 (Standard Second-Order System):</strong>
+                        <div class="math-output">
+                            $$G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2}$$
+                        </div>
+                    </div>
+
+                    <div class="output-box">
+                        <strong>極の位置 (Pole Locations):</strong>
+                        <div class="math-output">
+                            $$s_{1,2} = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}$$
+                        </div>
+                    </div>
+
+                    <div class="output-box">
+                        <strong>減衰振動数 (Damped Natural Frequency):</strong>
+                        <div class="math-output">
+                            $$\omega_d = \omega_n\sqrt{1-\zeta^2}$$
+                        </div>
+                    </div>
+
+                    <div class="grid-2col">
+                        <div class="output-box">
+                            <strong>立ち上がり時間 (Rise Time):</strong>
+                            <div class="math-output">
+                                $$T_r \approx \frac{1.8}{\omega_n}$$
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                ※ 10%-90% の近似式
+                            </p>
+                        </div>
+
+                        <div class="output-box">
+                            <strong>ピーク時間 (Peak Time):</strong>
+                            <div class="math-output">
+                                $$T_p = \frac{\pi}{\omega_d} = \frac{\pi}{\omega_n\sqrt{1-\zeta^2}}$$
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                ※ 0 < ζ < 1 の場合
+                            </p>
+                        </div>
+
+                        <div class="output-box">
+                            <strong>整定時間 (Settling Time):</strong>
+                            <div class="math-output">
+                                $$T_s \approx \frac{4}{\zeta\omega_n}$$
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                ※ 2% 基準
+                            </p>
+                        </div>
+
+                        <div class="output-box">
+                            <strong>最大オーバーシュート (Max Overshoot):</strong>
+                            <div class="math-output">
+                                $$M_p = e^{-\frac{\zeta\pi}{\sqrt{1-\zeta^2}}} \times 100\%$$
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                                ※ 0 < ζ < 1 の場合
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let stepChart = null;
+        let poleZeroChart = null;
+
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            setTimeout(() => {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }, 100);
+        }
+
+        // Synchronize slider and input field
+        function updateZetaValue(value) {
+            document.getElementById('zeta').value = value;
+            document.getElementById('zeta-display').textContent = parseFloat(value).toFixed(2);
+        }
+
+        function updateZetaSlider(value) {
+            document.getElementById('zeta-slider').value = value;
+            document.getElementById('zeta-display').textContent = parseFloat(value).toFixed(2);
+        }
+
+        // Calculate step response
+        function calculateStepResponse() {
+            const zeta = parseFloat(document.getElementById('zeta').value);
+            const omegaN = parseFloat(document.getElementById('omega-n').value);
+
+            if (isNaN(zeta) || isNaN(omegaN) || omegaN <= 0) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            if (zeta < 0) {
+                alert('警告: 負の減衰比は不安定なシステムです');
+            }
+
+            const omegaD = omegaN * Math.sqrt(Math.abs(1 - zeta * zeta));
+
+            const timePoints = [];
+            const responsePoints = [];
+            const tMax = zeta > 0 ? Math.max(10 / (zeta * omegaN), 5) : 10;
+            const dt = tMax / 500;
+
+            for (let t = 0; t <= tMax; t += dt) {
+                timePoints.push(t);
+                let y;
+
+                if (zeta < 1 && zeta > 0) {
+                    const exp_term = Math.exp(-zeta * omegaN * t);
+                    const phase = Math.atan2(Math.sqrt(1 - zeta * zeta), zeta);
+                    y = 1 - (exp_term / Math.sqrt(1 - zeta * zeta)) * Math.sin(omegaD * t + phase);
+                } else if (zeta === 1) {
+                    const exp_term = Math.exp(-omegaN * t);
+                    y = 1 - exp_term * (1 + omegaN * t);
+                } else if (zeta > 1) {
+                    const s1 = -zeta * omegaN + omegaN * Math.sqrt(zeta * zeta - 1);
+                    const s2 = -zeta * omegaN - omegaN * Math.sqrt(zeta * zeta - 1);
+                    y = 1 + (s2 * Math.exp(s1 * t) - s1 * Math.exp(s2 * t)) / (s2 - s1);
+                } else {
+                    const exp_term = Math.exp(-zeta * omegaN * t);
+                    y = 1 - exp_term * Math.cos(omegaD * t);
+                }
+
+                responsePoints.push(y);
+            }
+
+            plotStepResponse(timePoints, responsePoints);
+            displayTransferFunction(zeta, omegaN);
+            displayCharacteristicValues(zeta, omegaN, omegaD);
+        }
+
+        function plotStepResponse(timePoints, responsePoints) {
+            const ctx = document.getElementById('stepResponseChart').getContext('2d');
+
+            if (stepChart) {
+                stepChart.destroy();
+            }
+
+            const data = timePoints.map((t, i) => ({ x: t, y: responsePoints[i] }));
+
+            stepChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'ステップ応答',
+                        data: data,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0
+                    }, {
+                        label: '目標値',
+                        data: [{ x: timePoints[0], y: 1 }, { x: timePoints[timePoints.length - 1], y: 1 }],
+                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ステップ応答 (Step Response)',
+                            font: { size: 18 }
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: '時間 t [s]',
+                                font: { size: 14 }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '応答 y(t)',
+                                font: { size: 14 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayTransferFunction(zeta, omegaN) {
+            const output = document.getElementById('transfer-function');
+            output.innerHTML = '<span id="tf-display"></span>';
+            katex.render(
+                `G(s) = \\frac{${omegaN.toFixed(2)}^2}{s^2 + ${(2 * zeta * omegaN).toFixed(2)}s + ${omegaN.toFixed(2)}^2}`,
+                document.getElementById('tf-display'),
+                { displayMode: true }
+            );
+        }
+
+        function displayCharacteristicValues(zeta, omegaN, omegaD) {
+            let tr, tp, ts, mp;
+
+            tr = 1.8 / omegaN;
+
+            if (zeta < 1 && zeta > 0) {
+                tp = Math.PI / omegaD;
+                ts = 4 / (zeta * omegaN);
+                mp = Math.exp(-zeta * Math.PI / Math.sqrt(1 - zeta * zeta)) * 100;
+            } else if (zeta === 1) {
+                tp = Infinity;
+                ts = 4 / omegaN;
+                mp = 0;
+            } else if (zeta > 1) {
+                tp = Infinity;
+                ts = 4 / (zeta * omegaN);
+                mp = 0;
+            } else {
+                tp = Math.PI / omegaD;
+                ts = Infinity;
+                mp = Infinity;
+            }
+
+            document.getElementById('tr-value').textContent = tr.toFixed(3);
+            document.getElementById('tp-value').textContent = tp === Infinity ? '∞' : tp.toFixed(3);
+            document.getElementById('ts-value').textContent = ts === Infinity ? '∞' : ts.toFixed(3);
+            document.getElementById('mp-value').textContent = mp === Infinity ? '∞' : mp.toFixed(2);
+
+            const formulasOutput = document.getElementById('formulas-output');
+            formulasOutput.innerHTML = `
+                <div class="math-output">
+                    <strong>減衰振動数:</strong> ωd = ${omegaD.toFixed(3)} rad/s
+                </div>
+            `;
+        }
+
+        function clearResponse() {
+            if (stepChart) {
+                stepChart.destroy();
+                stepChart = null;
+            }
+            document.getElementById('transfer-function').innerHTML = '<p>パラメータを入力して計算してください</p>';
+            document.getElementById('tr-value').textContent = '-';
+            document.getElementById('tp-value').textContent = '-';
+            document.getElementById('ts-value').textContent = '-';
+            document.getElementById('mp-value').textContent = '-';
+            document.getElementById('formulas-output').innerHTML = '';
+        }
+
+        // Pole-Zero Plot
+        function plotPoleZero() {
+            const zeta = parseFloat(document.getElementById('zeta-pz').value);
+            const omegaN = parseFloat(document.getElementById('omega-n-pz').value);
+            const zeroReal = document.getElementById('zero-real').value;
+            const zeroImag = document.getElementById('zero-imag').value;
+
+            if (isNaN(zeta) || isNaN(omegaN) || omegaN <= 0) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            const realPart = -zeta * omegaN;
+            const imagPart = omegaN * Math.sqrt(Math.abs(1 - zeta * zeta));
+
+            const poles = [];
+            if (zeta < 1) {
+                poles.push({ x: realPart, y: imagPart });
+                poles.push({ x: realPart, y: -imagPart });
+            } else {
+                const s1 = -zeta * omegaN + omegaN * Math.sqrt(zeta * zeta - 1);
+                const s2 = -zeta * omegaN - omegaN * Math.sqrt(zeta * zeta - 1);
+                poles.push({ x: s1, y: 0 });
+                poles.push({ x: s2, y: 0 });
+            }
+
+            const zeros = [];
+            if (zeroReal !== '' && zeroImag !== '') {
+                const zr = parseFloat(zeroReal);
+                const zi = parseFloat(zeroImag);
+                if (!isNaN(zr) && !isNaN(zi)) {
+                    if (zi !== 0) {
+                        zeros.push({ x: zr, y: zi });
+                        zeros.push({ x: zr, y: -zi });
+                    } else {
+                        zeros.push({ x: zr, y: zi });
+                    }
+                }
+            }
+
+            createPoleZeroPlot(poles, zeros);
+            displayPoleLocations(poles, zeta, omegaN);
+            displayZeroLocations(zeros);
+        }
+
+        const stabilityRegionPlugin = {
+            id: 'stabilityRegion',
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                const chartArea = chart.chartArea;
+                const xScale = chart.scales.x;
+                const yScale = chart.scales.y;
+
+                const zeroX = xScale.getPixelForValue(0);
+
+                ctx.save();
+                ctx.fillStyle = 'rgba(144, 238, 144, 0.15)';
+                ctx.fillRect(chartArea.left, chartArea.top, zeroX - chartArea.left, chartArea.bottom - chartArea.top);
+                ctx.restore();
+            }
+        };
+
+        function createPoleZeroPlot(poles, zeros = []) {
+            const ctx = document.getElementById('poleZeroChart').getContext('2d');
+
+            if (poleZeroChart) {
+                poleZeroChart.destroy();
+            }
+
+            const allPoints = [...poles, ...zeros];
+            const maxVal = allPoints.length > 0 ?
+                Math.max(...allPoints.map(p => Math.max(Math.abs(p.x), Math.abs(p.y)))) * 1.5 : 5;
+            const axisMax = Math.max(maxVal, 5);
+
+            const datasets = [{
+                label: '極 (Poles)',
+                data: poles,
+                backgroundColor: 'rgba(234, 102, 102, 0.8)',
+                borderColor: 'rgba(234, 102, 102, 1)',
+                pointStyle: 'cross',
+                pointRadius: 12,
+                pointHoverRadius: 15,
+                borderWidth: 3
+            }];
+
+            if (zeros.length > 0) {
+                datasets.push({
+                    label: '零点 (Zeros)',
+                    data: zeros,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    pointStyle: 'circle',
+                    pointRadius: 10,
+                    pointHoverRadius: 13,
+                    borderWidth: 3
+                });
+            }
+
+            poleZeroChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '極・零点配置図 (Pole-Zero Map)',
+                            font: { size: 18 }
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '実軸 σ (Real Axis)',
+                                font: { size: 14 }
+                            },
+                            min: -axisMax,
+                            max: axisMax,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '虚軸 jω (Imaginary Axis)',
+                                font: { size: 14 }
+                            },
+                            min: -axisMax,
+                            max: axisMax,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [stabilityRegionPlugin]
+            });
+        }
+
+        function displayPoleLocations(poles, zeta, omegaN) {
+            const output = document.getElementById('pole-locations');
+            let html = '';
+
+            if (zeta < 1) {
+                html = `
+                    <div class="math-output">
+                        <span id="pole-eq"></span>
+                    </div>
+                    <p>複素共役極 (Complex Conjugate Poles)</p>
+                `;
+                output.innerHTML = html;
+                katex.render(
+                    `s_{1,2} = ${poles[0].x.toFixed(3)} \\pm j${Math.abs(poles[0].y).toFixed(3)}`,
+                    document.getElementById('pole-eq'),
+                    { displayMode: true }
+                );
+            } else {
+                html = `
+                    <div class="math-output">
+                        <span id="pole-eq"></span>
+                    </div>
+                    <p>実数極 (Real Poles)</p>
+                `;
+                output.innerHTML = html;
+                katex.render(
+                    `s_1 = ${poles[0].x.toFixed(3)}, \\quad s_2 = ${poles[1].x.toFixed(3)}`,
+                    document.getElementById('pole-eq'),
+                    { displayMode: true }
+                );
+            }
+
+            const charOutput = document.getElementById('system-characteristics');
+            const stability = poles.every(p => p.x < 0) ? '安定 (Stable)' : '不安定 (Unstable)';
+            const damping = zeta < 1 ? '不足減衰 (Underdamped)' :
+                           zeta === 1 ? '臨界減衰 (Critically Damped)' :
+                           '過減衰 (Overdamped)';
+
+            charOutput.innerHTML = `
+                <p><strong>安定性:</strong> ${stability}</p>
+                <p><strong>減衰特性:</strong> ${damping}</p>
+                <p><strong>減衰比:</strong> ζ = ${zeta.toFixed(3)}</p>
+                <p><strong>固有振動数:</strong> ωₙ = ${omegaN.toFixed(3)} rad/s</p>
+            `;
+        }
+
+        function displayZeroLocations(zeros) {
+            const output = document.getElementById('zero-locations');
+
+            if (zeros.length === 0) {
+                output.innerHTML = '<p>零点が入力されていません</p>';
+                return;
+            }
+
+            let html = '';
+            if (zeros.length === 2 && zeros[0].y !== 0) {
+                html = `
+                    <div class="math-output">
+                        <span id="zero-eq"></span>
+                    </div>
+                    <p>複素共役零点 (Complex Conjugate Zeros)</p>
+                `;
+                output.innerHTML = html;
+                katex.render(
+                    `z_{1,2} = ${zeros[0].x.toFixed(3)} \\pm j${Math.abs(zeros[0].y).toFixed(3)}`,
+                    document.getElementById('zero-eq'),
+                    { displayMode: true }
+                );
+            } else {
+                html = `
+                    <div class="math-output">
+                        <span id="zero-eq"></span>
+                    </div>
+                    <p>実数零点 (Real Zero)</p>
+                `;
+                output.innerHTML = html;
+                katex.render(
+                    `z = ${zeros[0].x.toFixed(3)}`,
+                    document.getElementById('zero-eq'),
+                    { displayMode: true }
+                );
+            }
+        }
+
+        function clearPoleZero() {
+            if (poleZeroChart) {
+                poleZeroChart.destroy();
+                poleZeroChart = null;
+            }
+            document.getElementById('pole-locations').innerHTML = '<p>パラメータを入力してプロットしてください</p>';
+            document.getElementById('zero-locations').innerHTML = '<p>零点が入力されていません</p>';
+            document.getElementById('system-characteristics').innerHTML = '';
+            document.getElementById('zero-real').value = '';
+            document.getElementById('zero-imag').value = '';
+        }
+
+        // Characteristic Value Calculator
+        function calculateCharacteristics() {
+            const zeta = parseFloat(document.getElementById('zeta-calc').value);
+            const omegaN = parseFloat(document.getElementById('omega-n-calc').value);
+
+            if (isNaN(zeta) || isNaN(omegaN) || omegaN <= 0) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            const output = document.getElementById('tf-calc');
+            output.innerHTML = '<span id="tf-calc-display"></span>';
+            katex.render(
+                `G(s) = \\frac{${(omegaN * omegaN).toFixed(2)}}{s^2 + ${(2 * zeta * omegaN).toFixed(2)}s + ${(omegaN * omegaN).toFixed(2)}}`,
+                document.getElementById('tf-calc-display'),
+                { displayMode: true }
+            );
+
+            const omegaD = omegaN * Math.sqrt(Math.abs(1 - zeta * zeta));
+            const tr = 1.8 / omegaN;
+            let tp, ts, mp;
+
+            if (zeta < 1 && zeta > 0) {
+                tp = Math.PI / omegaD;
+                ts = 4 / (zeta * omegaN);
+                mp = Math.exp(-zeta * Math.PI / Math.sqrt(1 - zeta * zeta)) * 100;
+            } else if (zeta === 1) {
+                tp = Infinity;
+                ts = 4 / omegaN;
+                mp = 0;
+            } else if (zeta > 1) {
+                tp = Infinity;
+                ts = 4 / (zeta * omegaN);
+                mp = 0;
+            } else {
+                tp = Math.PI / omegaD;
+                ts = Infinity;
+                mp = Infinity;
+            }
+
+            const tableBody = document.getElementById('characteristics-table');
+            tableBody.innerHTML = `
+                <tr>
+                    <td>立ち上がり時間 T<sub>r</sub></td>
+                    <td><span id="formula-tr"></span></td>
+                    <td>${tr.toFixed(3)} s</td>
+                </tr>
+                <tr>
+                    <td>ピーク時間 T<sub>p</sub></td>
+                    <td><span id="formula-tp"></span></td>
+                    <td>${tp === Infinity ? '∞' : tp.toFixed(3) + ' s'}</td>
+                </tr>
+                <tr>
+                    <td>整定時間 T<sub>s</sub></td>
+                    <td><span id="formula-ts"></span></td>
+                    <td>${ts === Infinity ? '∞' : ts.toFixed(3) + ' s'}</td>
+                </tr>
+                <tr>
+                    <td>最大オーバーシュート M<sub>p</sub></td>
+                    <td><span id="formula-mp"></span></td>
+                    <td>${mp === Infinity ? '∞' : mp.toFixed(2) + ' %'}</td>
+                </tr>
+                <tr>
+                    <td>減衰振動数 ω<sub>d</sub></td>
+                    <td><span id="formula-wd"></span></td>
+                    <td>${omegaD.toFixed(3)} rad/s</td>
+                </tr>
+            `;
+
+            katex.render('T_r \\approx \\frac{1.8}{\\omega_n}', document.getElementById('formula-tr'), { displayMode: false });
+
+            if (zeta < 1 && zeta > 0) {
+                katex.render('T_p = \\frac{\\pi}{\\omega_d} = \\frac{\\pi}{\\omega_n\\sqrt{1-\\zeta^2}}', document.getElementById('formula-tp'), { displayMode: false });
+            } else {
+                katex.render('T_p = \\infty \\text{ (過減衰)}', document.getElementById('formula-tp'), { displayMode: false });
+            }
+
+            katex.render('T_s \\approx \\frac{4}{\\zeta\\omega_n}', document.getElementById('formula-ts'), { displayMode: false });
+
+            if (zeta < 1 && zeta > 0) {
+                katex.render('M_p = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100\\%', document.getElementById('formula-mp'), { displayMode: false });
+            } else {
+                katex.render('M_p = 0 \\text{ (過減衰)}', document.getElementById('formula-mp'), { displayMode: false });
+            }
+
+            katex.render('\\omega_d = \\omega_n\\sqrt{1-\\zeta^2}', document.getElementById('formula-wd'), { displayMode: false });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

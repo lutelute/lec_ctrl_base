@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第15章 期末試験対策 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .section h3 {
+            color: #555;
+            margin: 15px 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin: 15px 0;
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 10px 5px 10px 0;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+
+        .result h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .matrix-display {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .quiz-option {
+            display: block;
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .quiz-option.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .quiz-option.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .quiz-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .quiz-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .math {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #f57c00;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                min-width: 120px;
+                font-size: 0.9rem;
+                padding: 12px 15px;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第15章 期末試験対策</h1>
+            <p>Control Systems Final Exam - Interactive Learning Tool</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab(0)">状態空間表現</button>
+            <button class="tab-button" onclick="switchTab(1)">安定性解析</button>
+            <button class="tab-button" onclick="switchTab(2)">周波数応答</button>
+            <button class="tab-button" onclick="switchTab(3)">フィードバック系</button>
+            <button class="tab-button" onclick="switchTab(4)">練習問題</button>
+        </div>
+
+        <!-- Tab 1: State Space Representation -->
+        <div class="tab-content active" id="tab-0">
+            <div class="section">
+                <h2>状態空間表現ビジュアライザー</h2>
+                <p>State Space Representation Visualizer</p>
+
+                <h3>1次システムの状態空間表現</h3>
+                <p class="math">伝達関数: \( G(s) = \frac{K}{\tau s + 1} \)</p>
+                <p class="math">状態方程式: \( \dot{x}(t) = -\frac{1}{\tau}x(t) + \frac{K}{\tau}u(t) \)</p>
+                <p class="math">出力方程式: \( y(t) = x(t) \)</p>
+
+                <div class="input-group">
+                    <label for="ss-gain">ゲイン K:</label>
+                    <input type="number" id="ss-gain" value="2" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="ss-tau">時定数 τ:</label>
+                    <input type="number" id="ss-tau" value="1" step="0.1" min="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="ss-input">入力タイプ:</label>
+                    <select id="ss-input">
+                        <option value="step">ステップ入力</option>
+                        <option value="impulse">インパルス入力</option>
+                        <option value="ramp">ランプ入力</option>
+                    </select>
+                </div>
+
+                <button onclick="plotStateSpace()">状態応答を計算</button>
+
+                <div id="ss-result" class="result" style="display:none;">
+                    <h4>システム行列</h4>
+                    <div class="matrix-display">
+                        <p class="math">A = <span id="ss-matrix-a"></span></p>
+                        <p class="math">B = <span id="ss-matrix-b"></span></p>
+                        <p class="math">C = <span id="ss-matrix-c"></span></p>
+                        <p class="math">D = <span id="ss-matrix-d"></span></p>
+                    </div>
+                    <canvas id="stateSpaceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>2次システムの状態空間表現</h3>
+                <p class="math">伝達関数: \( G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2} \)</p>
+
+                <div class="input-group">
+                    <label for="ss2-wn">固有振動数 ωn:</label>
+                    <input type="number" id="ss2-wn" value="2" step="0.1" min="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="ss2-zeta">減衰係数 ζ:</label>
+                    <input type="number" id="ss2-zeta" value="0.5" step="0.1" min="0">
+                </div>
+
+                <button onclick="plotSecondOrderStateSpace()">2次系の応答を計算</button>
+
+                <div id="ss2-result" class="result" style="display:none;">
+                    <h4>状態空間行列 (可制御正準形式)</h4>
+                    <div class="matrix-display">
+                        <p class="math" id="ss2-matrices"></p>
+                    </div>
+                    <canvas id="stateSpace2Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Stability Analysis -->
+        <div class="tab-content" id="tab-1">
+            <div class="section">
+                <h2>安定性解析ツール</h2>
+                <p>Stability Analysis Tools</p>
+
+                <h3>極の位置と安定性</h3>
+                <p>システムの特性方程式から極を求め、安定性を判定します。</p>
+
+                <div class="input-group">
+                    <label for="char-poly">特性方程式の係数:</label>
+                    <input type="text" id="char-poly" placeholder="例: 1,3,2 (s^2+3s+2)" value="1,3,2">
+                </div>
+
+                <div class="note">
+                    <strong>入力形式:</strong> 高次から低次の順にカンマ区切りで入力<br>
+                    例: s³+2s²+3s+1 → 1,2,3,1
+                </div>
+
+                <button onclick="analyzeStability()">安定性を判定</button>
+
+                <div id="stability-result" class="result" style="display:none;">
+                    <h4>判定結果</h4>
+                    <div id="poles-display"></div>
+                    <div id="stability-status"></div>
+                    <canvas id="poleZeroChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>ラウス・フルビッツの判別法</h3>
+                <p>Routh-Hurwitz Stability Criterion</p>
+
+                <div class="input-group">
+                    <label for="routh-poly">特性方程式の係数:</label>
+                    <input type="text" id="routh-poly" placeholder="例: 1,4,3,2" value="1,4,3,2">
+                </div>
+
+                <button onclick="routhHurwitz()">ラウス表を作成</button>
+
+                <div id="routh-result" class="result" style="display:none;">
+                    <h4>ラウス表 (Routh Array)</h4>
+                    <div id="routh-table"></div>
+                    <div id="routh-stability"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Frequency Response (Bode Plot) -->
+        <div class="tab-content" id="tab-2">
+            <div class="section">
+                <h2>周波数応答解析</h2>
+                <p>Frequency Response Analysis - Bode Plot</p>
+
+                <h3>ボード線図の描画</h3>
+                <p class="math">伝達関数: \( G(s) = \frac{K}{(1+T_1s)(1+T_2s)} \)</p>
+
+                <div class="input-group">
+                    <label for="bode-k">ゲイン K:</label>
+                    <input type="number" id="bode-k" value="10" step="1">
+                </div>
+
+                <div class="input-group">
+                    <label for="bode-t1">時定数 T1:</label>
+                    <input type="number" id="bode-t1" value="0.1" step="0.01" min="0.01">
+                </div>
+
+                <div class="input-group">
+                    <label for="bode-t2">時定数 T2:</label>
+                    <input type="number" id="bode-t2" value="1" step="0.1" min="0.01">
+                </div>
+
+                <button onclick="plotBode()">ボード線図を描画</button>
+
+                <div id="bode-result" class="result" style="display:none;">
+                    <h4>ゲイン線図 (Gain Plot)</h4>
+                    <canvas id="bodeGainChart"></canvas>
+
+                    <h4>位相線図 (Phase Plot)</h4>
+                    <canvas id="bodePhaseChart"></canvas>
+
+                    <div id="bode-margins"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>2次系の周波数応答</h3>
+                <p class="math">伝達関数: \( G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2} \)</p>
+
+                <div class="input-group">
+                    <label for="freq-wn">固有振動数 ωn:</label>
+                    <input type="number" id="freq-wn" value="10" step="0.1" min="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="freq-zeta">減衰係数 ζ:</label>
+                    <input type="number" id="freq-zeta" value="0.3" step="0.1" min="0">
+                </div>
+
+                <button onclick="plotSecondOrderBode()">2次系ボード線図</button>
+
+                <div id="bode2-result" class="result" style="display:none;">
+                    <h4>周波数応答特性</h4>
+                    <div id="resonance-info"></div>
+                    <canvas id="bode2Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Feedback System Calculator -->
+        <div class="tab-content" id="tab-3">
+            <div class="section">
+                <h2>フィードバック系計算機</h2>
+                <p>Feedback System Calculator</p>
+
+                <h3>閉ループ伝達関数の計算</h3>
+                <p>負帰還システムの特性を解析します。</p>
+                <p class="math">閉ループ伝達関数: \( T(s) = \frac{G(s)}{1 + G(s)H(s)} \)</p>
+
+                <div class="note">
+                    <strong>設定:</strong> プラント G(s) とフィードバック H(s) のパラメータを入力
+                </div>
+
+                <h4>プラント G(s)</h4>
+                <div class="input-group">
+                    <label for="fb-kg">ゲイン Kg:</label>
+                    <input type="number" id="fb-kg" value="5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label for="fb-tg">時定数 Tg:</label>
+                    <input type="number" id="fb-tg" value="1" step="0.1" min="0.1">
+                </div>
+
+                <h4>フィードバック H(s)</h4>
+                <div class="input-group">
+                    <label for="fb-kh">フィードバックゲイン Kh:</label>
+                    <input type="number" id="fb-kh" value="1" step="0.1">
+                </div>
+
+                <button onclick="calculateFeedback()">閉ループ特性を計算</button>
+
+                <div id="fb-result" class="result" style="display:none;">
+                    <h4>開ループと閉ループの比較</h4>
+                    <div id="fb-equations"></div>
+                    <canvas id="feedbackChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>PID制御シミュレーター</h3>
+                <p>PID Controller Simulator</p>
+
+                <div class="input-group">
+                    <label for="pid-kp">比例ゲイン Kp:</label>
+                    <input type="number" id="pid-kp" value="1" step="0.1" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="pid-ki">積分ゲイン Ki:</label>
+                    <input type="number" id="pid-ki" value="0.5" step="0.1" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="pid-kd">微分ゲイン Kd:</label>
+                    <input type="number" id="pid-kd" value="0.1" step="0.1" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="pid-plant-tau">プラント時定数:</label>
+                    <input type="number" id="pid-plant-tau" value="1" step="0.1" min="0.1">
+                </div>
+
+                <button onclick="simulatePID()">PID制御をシミュレート</button>
+
+                <div id="pid-result" class="result" style="display:none;">
+                    <h4>ステップ応答</h4>
+                    <div id="pid-performance"></div>
+                    <canvas id="pidChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Practice Problems Quiz -->
+        <div class="tab-content" id="tab-4">
+            <div class="section">
+                <h2>練習問題クイズ</h2>
+                <p>Practice Problems Quiz</p>
+
+                <div id="quiz-container">
+                    <div class="quiz-question" id="question-1">
+                        <h3>問題 1: 状態空間表現</h3>
+                        <p>1次遅れ系 \( G(s) = \frac{2}{s+3} \) の状態空間表現で、システム行列 A の値は？</p>
+                        <div class="quiz-option" onclick="checkAnswer(1, 'a')">
+                            (a) A = -3
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(1, 'b')">
+                            (b) A = 3
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(1, 'c')">
+                            (c) A = 2
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(1, 'd')">
+                            (d) A = -2
+                        </div>
+                        <div id="feedback-1" class="quiz-feedback" style="display:none;"></div>
+                    </div>
+
+                    <div class="quiz-question" id="question-2">
+                        <h3>問題 2: 安定性判定</h3>
+                        <p>システムの極が s = -2 ± 3j にあるとき、このシステムは安定か？</p>
+                        <div class="quiz-option" onclick="checkAnswer(2, 'a')">
+                            (a) 安定である
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(2, 'b')">
+                            (b) 不安定である
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(2, 'c')">
+                            (c) 限界安定である
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(2, 'd')">
+                            (d) 判定できない
+                        </div>
+                        <div id="feedback-2" class="quiz-feedback" style="display:none;"></div>
+                    </div>
+
+                    <div class="quiz-question" id="question-3">
+                        <h3>問題 3: ボード線図</h3>
+                        <p>1次遅れ系のボード線図で、カットオフ周波数（-3dB）における位相遅れは？</p>
+                        <div class="quiz-option" onclick="checkAnswer(3, 'a')">
+                            (a) -90°
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(3, 'b')">
+                            (b) -45°
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(3, 'c')">
+                            (c) -30°
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(3, 'd')">
+                            (d) -60°
+                        </div>
+                        <div id="feedback-3" class="quiz-feedback" style="display:none;"></div>
+                    </div>
+
+                    <div class="quiz-question" id="question-4">
+                        <h3>問題 4: フィードバック制御</h3>
+                        <p>負帰還をかけることで得られる効果として正しくないものは？</p>
+                        <div class="quiz-option" onclick="checkAnswer(4, 'a')">
+                            (a) 定常偏差の減少
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(4, 'b')">
+                            (b) 外乱の影響の低減
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(4, 'c')">
+                            (c) ゲインの増加
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(4, 'd')">
+                            (d) 感度の低減
+                        </div>
+                        <div id="feedback-4" class="quiz-feedback" style="display:none;"></div>
+                    </div>
+
+                    <div class="quiz-question" id="question-5">
+                        <h3>問題 5: PID制御</h3>
+                        <p>PID制御器の微分動作（D動作）の主な効果は？</p>
+                        <div class="quiz-option" onclick="checkAnswer(5, 'a')">
+                            (a) 定常偏差を除去する
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(5, 'b')">
+                            (b) 応答を速くし、オーバーシュートを抑制する
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(5, 'c')">
+                            (c) ゲインを増加させる
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer(5, 'd')">
+                            (d) 安定性を悪化させる
+                        </div>
+                        <div id="feedback-5" class="quiz-feedback" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="result" style="margin-top: 20px;">
+                    <h4>クイズ統計</h4>
+                    <p>正解数: <span id="quiz-score">0</span> / 5</p>
+                    <button onclick="resetQuiz()">クイズをリセット</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js instances storage
+        let charts = {};
+
+        // Quiz state
+        let quizAnswers = {
+            1: { correct: 'a', answered: false },
+            2: { correct: 'a', answered: false },
+            3: { correct: 'b', answered: false },
+            4: { correct: 'c', answered: false },
+            5: { correct: 'b', answered: false }
+        };
+        let quizScore = 0;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render math equations
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "$", right: "$", display: false}
+                    ]
+                });
+            }
+        });
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            contents.forEach((content, i) => {
+                if (i === index) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Re-render math when switching tabs
+            if (window.renderMathInElement) {
+                setTimeout(() => {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "\\(", right: "\\)", display: false}
+                        ]
+                    });
+                }, 100);
+            }
+        }
+
+        // State Space Visualization
+        function plotStateSpace() {
+            const K = parseFloat(document.getElementById('ss-gain').value);
+            const tau = parseFloat(document.getElementById('ss-tau').value);
+            const inputType = document.getElementById('ss-input').value;
+
+            // Display system matrices
+            document.getElementById('ss-matrix-a').textContent = (-1/tau).toFixed(3);
+            document.getElementById('ss-matrix-b').textContent = (K/tau).toFixed(3);
+            document.getElementById('ss-matrix-c').textContent = '1';
+            document.getElementById('ss-matrix-d').textContent = '0';
+
+            // Calculate response
+            const dt = 0.01;
+            const tMax = 5 * tau;
+            const steps = Math.floor(tMax / dt);
+            const time = [];
+            const state = [];
+            const output = [];
+
+            let x = 0;
+            for (let i = 0; i < steps; i++) {
+                const t = i * dt;
+                time.push(t);
+
+                // Input
+                let u = 0;
+                if (inputType === 'step') {
+                    u = 1;
+                } else if (inputType === 'impulse') {
+                    u = (i === 0) ? 1/dt : 0;
+                } else if (inputType === 'ramp') {
+                    u = t;
+                }
+
+                // Euler integration
+                const xdot = (-1/tau) * x + (K/tau) * u;
+                x = x + xdot * dt;
+
+                state.push(x);
+                output.push(x);
+            }
+
+            // Plot
+            const ctx = document.getElementById('stateSpaceChart');
+            if (charts['stateSpace']) {
+                charts['stateSpace'].destroy();
+            }
+
+            charts['stateSpace'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: '状態変数 x(t)',
+                        data: state,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '状態応答 (State Response)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'x(t)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('ss-result').style.display = 'block';
+        }
+
+        // Second Order State Space
+        function plotSecondOrderStateSpace() {
+            const wn = parseFloat(document.getElementById('ss2-wn').value);
+            const zeta = parseFloat(document.getElementById('ss2-zeta').value);
+
+            // Display state space matrices
+            const matrixHTML = `
+                \\[
+                A = \\begin{bmatrix} 0 & 1 \\\\ -${wn.toFixed(2)}^2 & -2(${zeta.toFixed(2)})(${wn.toFixed(2)}) \\end{bmatrix}
+                = \\begin{bmatrix} 0 & 1 \\\\ ${(-wn*wn).toFixed(2)} & ${(-2*zeta*wn).toFixed(2)} \\end{bmatrix}
+                \\]
+                \\[
+                B = \\begin{bmatrix} 0 \\\\ ${(wn*wn).toFixed(2)} \\end{bmatrix}, \\quad
+                C = \\begin{bmatrix} 1 & 0 \\end{bmatrix}, \\quad
+                D = 0
+                \\]
+            `;
+            document.getElementById('ss2-matrices').innerHTML = matrixHTML;
+
+            // Calculate response
+            const dt = 0.01;
+            const tMax = 10;
+            const steps = Math.floor(tMax / dt);
+            const time = [];
+            const x1Data = [];
+            const x2Data = [];
+
+            let x1 = 0;  // position
+            let x2 = 0;  // velocity
+
+            for (let i = 0; i < steps; i++) {
+                const t = i * dt;
+                time.push(t);
+
+                const u = 1;  // step input
+
+                // State equations: dx1/dt = x2, dx2/dt = -wn^2*x1 - 2*zeta*wn*x2 + wn^2*u
+                const x1dot = x2;
+                const x2dot = -wn*wn*x1 - 2*zeta*wn*x2 + wn*wn*u;
+
+                x1 = x1 + x1dot * dt;
+                x2 = x2 + x2dot * dt;
+
+                x1Data.push(x1);
+                x2Data.push(x2);
+            }
+
+            // Plot
+            const ctx = document.getElementById('stateSpace2Chart');
+            if (charts['stateSpace2']) {
+                charts['stateSpace2'].destroy();
+            }
+
+            charts['stateSpace2'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [
+                        {
+                            label: '状態変数 x₁(t) - 位置',
+                            data: x1Data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2
+                        },
+                        {
+                            label: '状態変数 x₂(t) - 速度',
+                            data: x2Data,
+                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '2次系の状態応答'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '状態変数'
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('ss2-result').style.display = 'block';
+
+            // Re-render math
+            if (window.renderMathInElement) {
+                renderMathInElement(document.getElementById('ss2-matrices'));
+            }
+        }
+
+        // Stability Analysis
+        function analyzeStability() {
+            const input = document.getElementById('char-poly').value;
+            const coeffs = input.split(',').map(x => parseFloat(x.trim()));
+
+            // Calculate poles (simplified for low order polynomials)
+            let poles = [];
+            let stable = true;
+            let stabilityText = '';
+
+            if (coeffs.length === 2) {
+                // First order: as + b = 0 => s = -b/a
+                const pole = -coeffs[1] / coeffs[0];
+                poles.push(pole);
+                stable = pole < 0;
+            } else if (coeffs.length === 3) {
+                // Second order: as^2 + bs + c = 0
+                const a = coeffs[0], b = coeffs[1], c = coeffs[2];
+                const disc = b*b - 4*a*c;
+                if (disc >= 0) {
+                    poles.push((-b + Math.sqrt(disc)) / (2*a));
+                    poles.push((-b - Math.sqrt(disc)) / (2*a));
+                } else {
+                    const real = -b / (2*a);
+                    const imag = Math.sqrt(-disc) / (2*a);
+                    poles.push({ real, imag });
+                    poles.push({ real, imag: -imag });
+                }
+                stable = poles.every(p => (typeof p === 'number' ? p : p.real) < 0);
+            }
+
+            // Display poles
+            let polesHTML = '<p><strong>極 (Poles):</strong></p><ul>';
+            poles.forEach((p, i) => {
+                if (typeof p === 'number') {
+                    polesHTML += `<li>s${i+1} = ${p.toFixed(3)}</li>`;
+                } else {
+                    polesHTML += `<li>s${i+1} = ${p.real.toFixed(3)} ${p.imag >= 0 ? '+' : ''}${p.imag.toFixed(3)}j</li>`;
+                }
+            });
+            polesHTML += '</ul>';
+            document.getElementById('poles-display').innerHTML = polesHTML;
+
+            // Stability status
+            if (stable) {
+                stabilityText = '<p style="color: #4caf50; font-weight: bold;">✓ システムは安定です (Stable)</p>';
+                stabilityText += '<p>すべての極の実部が負です。</p>';
+            } else {
+                stabilityText = '<p style="color: #f44336; font-weight: bold;">✗ システムは不安定です (Unstable)</p>';
+                stabilityText += '<p>実部が正または0の極が存在します。</p>';
+            }
+            document.getElementById('stability-status').innerHTML = stabilityText;
+
+            // Plot pole-zero map
+            plotPoleZeroMap(poles);
+
+            document.getElementById('stability-result').style.display = 'block';
+        }
+
+        function plotPoleZeroMap(poles) {
+            const poleData = poles.map(p => {
+                if (typeof p === 'number') {
+                    return { x: p, y: 0 };
+                } else {
+                    return { x: p.real, y: p.imag };
+                }
+            });
+
+            const ctx = document.getElementById('poleZeroChart');
+            if (charts['poleZero']) {
+                charts['poleZero'].destroy();
+            }
+
+            charts['poleZero'] = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '極 (Poles)',
+                        data: poleData,
+                        backgroundColor: '#f44336',
+                        borderColor: '#c62828',
+                        borderWidth: 2,
+                        pointStyle: 'crossRot',
+                        pointRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '極零点線図 (Pole-Zero Map)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '実部 (Real)'
+                            },
+                            grid: {
+                                drawOnChartArea: true,
+                                color: (context) => {
+                                    if (context.tick.value === 0) {
+                                        return '#000';
+                                    }
+                                    return '#e0e0e0';
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '虚部 (Imaginary)'
+                            },
+                            grid: {
+                                drawOnChartArea: true,
+                                color: (context) => {
+                                    if (context.tick.value === 0) {
+                                        return '#000';
+                                    }
+                                    return '#e0e0e0';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Routh-Hurwitz Criterion
+        function routhHurwitz() {
+            const input = document.getElementById('routh-poly').value;
+            const coeffs = input.split(',').map(x => parseFloat(x.trim()));
+            const n = coeffs.length - 1;
+
+            // Build Routh array
+            const routh = [];
+
+            // First two rows
+            routh[0] = [];
+            routh[1] = [];
+            for (let i = 0; i <= n; i++) {
+                if (i % 2 === 0) {
+                    routh[0].push(coeffs[i]);
+                } else {
+                    routh[1].push(coeffs[i]);
+                }
+            }
+
+            // Remaining rows
+            for (let i = 2; i <= n; i++) {
+                routh[i] = [];
+                const prev1 = routh[i-1];
+                const prev2 = routh[i-2];
+
+                for (let j = 0; j < prev2.length - 1; j++) {
+                    const val = (prev1[0] * (prev2[j+1] || 0) - prev2[0] * (prev1[j+1] || 0)) / (prev1[0] || 1);
+                    routh[i].push(val);
+                }
+
+                if (routh[i].length === 0) break;
+            }
+
+            // Display Routh table
+            let tableHTML = '<table style="border-collapse: collapse; width: 100%;"><thead><tr><th style="border: 1px solid #ddd; padding: 8px;">行</th>';
+            const maxCols = Math.max(...routh.map(r => r.length));
+            for (let i = 0; i < maxCols; i++) {
+                tableHTML += `<th style="border: 1px solid #ddd; padding: 8px;">列${i+1}</th>`;
+            }
+            tableHTML += '</tr></thead><tbody>';
+
+            routh.forEach((row, i) => {
+                tableHTML += `<tr><td style="border: 1px solid #ddd; padding: 8px;">s^${n-i}</td>`;
+                row.forEach(val => {
+                    tableHTML += `<td style="border: 1px solid #ddd; padding: 8px;">${val.toFixed(3)}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</tbody></table>';
+            document.getElementById('routh-table').innerHTML = tableHTML;
+
+            // Check stability
+            const firstColumn = routh.map(row => row[0]);
+            let signChanges = 0;
+            for (let i = 1; i < firstColumn.length; i++) {
+                if (firstColumn[i] * firstColumn[i-1] < 0) {
+                    signChanges++;
+                }
+            }
+
+            let stabilityHTML = '';
+            if (signChanges === 0 && firstColumn.every(v => v > 0)) {
+                stabilityHTML = '<p style="color: #4caf50; font-weight: bold; margin-top: 15px;">✓ システムは安定です</p>';
+                stabilityHTML += '<p>第1列に符号変化がありません。</p>';
+            } else {
+                stabilityHTML = '<p style="color: #f44336; font-weight: bold; margin-top: 15px;">✗ システムは不安定です</p>';
+                stabilityHTML += `<p>第1列に${signChanges}回の符号変化があります。右半平面に${signChanges}個の極があります。</p>`;
+            }
+            document.getElementById('routh-stability').innerHTML = stabilityHTML;
+
+            document.getElementById('routh-result').style.display = 'block';
+        }
+
+        // Bode Plot
+        function plotBode() {
+            const K = parseFloat(document.getElementById('bode-k').value);
+            const T1 = parseFloat(document.getElementById('bode-t1').value);
+            const T2 = parseFloat(document.getElementById('bode-t2').value);
+
+            // Frequency range
+            const freqs = [];
+            const gains = [];
+            const phases = [];
+
+            for (let i = -2; i <= 3; i += 0.05) {
+                const w = Math.pow(10, i);
+                freqs.push(w);
+
+                // G(jw) = K / ((1+jT1*w)(1+jT2*w))
+                const mag1 = Math.sqrt(1 + (T1*w)*(T1*w));
+                const mag2 = Math.sqrt(1 + (T2*w)*(T2*w));
+                const magnitude = K / (mag1 * mag2);
+                const gainDB = 20 * Math.log10(magnitude);
+                gains.push(gainDB);
+
+                const phase1 = Math.atan(T1*w) * 180 / Math.PI;
+                const phase2 = Math.atan(T2*w) * 180 / Math.PI;
+                const phase = -(phase1 + phase2);
+                phases.push(phase);
+            }
+
+            // Plot gain
+            const ctxGain = document.getElementById('bodeGainChart');
+            if (charts['bodeGain']) {
+                charts['bodeGain'].destroy();
+            }
+
+            charts['bodeGain'] = new Chart(ctxGain, {
+                type: 'line',
+                data: {
+                    labels: freqs,
+                    datasets: [{
+                        label: 'ゲイン [dB]',
+                        data: gains,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.1,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: '角周波数 ω [rad/s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'ゲイン [dB]'
+                            },
+                            grid: {
+                                color: (context) => {
+                                    if (context.tick.value === 0) {
+                                        return '#f44336';
+                                    }
+                                    return '#e0e0e0';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Plot phase
+            const ctxPhase = document.getElementById('bodePhaseChart');
+            if (charts['bodePhase']) {
+                charts['bodePhase'].destroy();
+            }
+
+            charts['bodePhase'] = new Chart(ctxPhase, {
+                type: 'line',
+                data: {
+                    labels: freqs,
+                    datasets: [{
+                        label: '位相 [deg]',
+                        data: phases,
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.1,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: '角周波数 ω [rad/s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '位相 [deg]'
+                            },
+                            grid: {
+                                color: (context) => {
+                                    if (context.tick.value === -180) {
+                                        return '#f44336';
+                                    }
+                                    return '#e0e0e0';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Calculate margins
+            let gainCrossover = null;
+            let phaseCrossover = null;
+            for (let i = 0; i < gains.length; i++) {
+                if (gainCrossover === null && gains[i] <= 0) {
+                    gainCrossover = { freq: freqs[i], phase: phases[i] };
+                }
+                if (phaseCrossover === null && phases[i] <= -180) {
+                    phaseCrossover = { freq: freqs[i], gain: gains[i] };
+                }
+            }
+
+            let marginsHTML = '<div style="margin-top: 20px;"><h4>安定余裕</h4>';
+            if (gainCrossover) {
+                const phaseMargin = 180 + gainCrossover.phase;
+                marginsHTML += `<p><strong>位相余裕:</strong> ${phaseMargin.toFixed(2)}° @ ${gainCrossover.freq.toFixed(3)} rad/s</p>`;
+            }
+            if (phaseCrossover) {
+                const gainMargin = -phaseCrossover.gain;
+                marginsHTML += `<p><strong>ゲイン余裕:</strong> ${gainMargin.toFixed(2)} dB @ ${phaseCrossover.freq.toFixed(3)} rad/s</p>`;
+            }
+            marginsHTML += '</div>';
+            document.getElementById('bode-margins').innerHTML = marginsHTML;
+
+            document.getElementById('bode-result').style.display = 'block';
+        }
+
+        // Second Order Bode
+        function plotSecondOrderBode() {
+            const wn = parseFloat(document.getElementById('freq-wn').value);
+            const zeta = parseFloat(document.getElementById('freq-zeta').value);
+
+            const freqs = [];
+            const gains = [];
+
+            for (let i = -1; i <= 2; i += 0.02) {
+                const w = Math.pow(10, i);
+                freqs.push(w);
+
+                // |G(jw)| = wn^2 / sqrt((wn^2-w^2)^2 + (2*zeta*wn*w)^2)
+                const num = wn * wn;
+                const denom = Math.sqrt(Math.pow(wn*wn - w*w, 2) + Math.pow(2*zeta*wn*w, 2));
+                const magnitude = num / denom;
+                const gainDB = 20 * Math.log10(magnitude);
+                gains.push(gainDB);
+            }
+
+            // Find peak
+            let peakGain = Math.max(...gains);
+            let peakFreq = freqs[gains.indexOf(peakGain)];
+
+            // Calculate theoretical resonance
+            let resonanceInfo = '<p><strong>減衰係数:</strong> ζ = ' + zeta.toFixed(3) + '</p>';
+            if (zeta < 0.707) {
+                const Mr = 1 / (2 * zeta * Math.sqrt(1 - zeta*zeta));
+                const wr = wn * Math.sqrt(1 - 2*zeta*zeta);
+                resonanceInfo += `<p><strong>共振ピーク:</strong> Mr = ${Mr.toFixed(3)} (${(20*Math.log10(Mr)).toFixed(2)} dB)</p>`;
+                resonanceInfo += `<p><strong>共振周波数:</strong> ωr = ${wr.toFixed(3)} rad/s</p>`;
+            } else {
+                resonanceInfo += '<p>共振ピークなし (ζ ≥ 0.707)</p>';
+            }
+            document.getElementById('resonance-info').innerHTML = resonanceInfo;
+
+            const ctx = document.getElementById('bode2Chart');
+            if (charts['bode2']) {
+                charts['bode2'].destroy();
+            }
+
+            charts['bode2'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: freqs,
+                    datasets: [{
+                        label: 'ゲイン [dB]',
+                        data: gains,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.1,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '2次系のボード線図 (ゲイン特性)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: '角周波数 ω [rad/s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'ゲイン [dB]'
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('bode2-result').style.display = 'block';
+        }
+
+        // Feedback System Calculator
+        function calculateFeedback() {
+            const Kg = parseFloat(document.getElementById('fb-kg').value);
+            const Tg = parseFloat(document.getElementById('fb-tg').value);
+            const Kh = parseFloat(document.getElementById('fb-kh').value);
+
+            // Open-loop: G(s) = Kg/(Tg*s + 1)
+            // Closed-loop: T(s) = G(s)/(1 + G(s)*Kh) = Kg/(Tg*s + 1 + Kg*Kh)
+
+            const openLoopGain = Kg;
+            const openLoopPole = -1/Tg;
+            const closedLoopGain = Kg / (1 + Kg*Kh);
+            const closedLoopPole = -(1 + Kg*Kh) / Tg;
+
+            let eqHTML = '<h4>システムの比較</h4>';
+            eqHTML += `<p><strong>開ループ伝達関数:</strong> G(s) = ${Kg}/(${Tg}s + 1)</p>`;
+            eqHTML += `<p><strong>閉ループ伝達関数:</strong> T(s) = ${Kg}/(${Tg}s + ${(1 + Kg*Kh).toFixed(3)})</p>`;
+            eqHTML += `<p><strong>開ループゲイン:</strong> ${openLoopGain.toFixed(3)}</p>`;
+            eqHTML += `<p><strong>閉ループゲイン:</strong> ${closedLoopGain.toFixed(3)}</p>`;
+            eqHTML += `<p><strong>開ループ極:</strong> s = ${openLoopPole.toFixed(3)}</p>`;
+            eqHTML += `<p><strong>閉ループ極:</strong> s = ${closedLoopPole.toFixed(3)}</p>`;
+            document.getElementById('fb-equations').innerHTML = eqHTML;
+
+            // Plot step responses
+            const dt = 0.01;
+            const tMax = 5 * Math.max(Tg, Tg/(1+Kg*Kh));
+            const steps = Math.floor(tMax / dt);
+            const time = [];
+            const openLoop = [];
+            const closedLoop = [];
+
+            for (let i = 0; i < steps; i++) {
+                const t = i * dt;
+                time.push(t);
+
+                // Step response: y(t) = K*(1 - exp(pole*t))
+                openLoop.push(Kg * (1 - Math.exp(openLoopPole * t)));
+                closedLoop.push(closedLoopGain * (1 - Math.exp(closedLoopPole * t)));
+            }
+
+            const ctx = document.getElementById('feedbackChart');
+            if (charts['feedback']) {
+                charts['feedback'].destroy();
+            }
+
+            charts['feedback'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [
+                        {
+                            label: '開ループ応答',
+                            data: openLoop,
+                            borderColor: '#ff9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5]
+                        },
+                        {
+                            label: '閉ループ応答',
+                            data: closedLoop,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ステップ応答の比較'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('fb-result').style.display = 'block';
+        }
+
+        // PID Simulation
+        function simulatePID() {
+            const Kp = parseFloat(document.getElementById('pid-kp').value);
+            const Ki = parseFloat(document.getElementById('pid-ki').value);
+            const Kd = parseFloat(document.getElementById('pid-kd').value);
+            const tau = parseFloat(document.getElementById('pid-plant-tau').value);
+
+            const dt = 0.01;
+            const tMax = 10;
+            const steps = Math.floor(tMax / dt);
+            const time = [];
+            const output = [];
+            const reference = [];
+
+            let y = 0;
+            let integral = 0;
+            let prevError = 0;
+
+            for (let i = 0; i < steps; i++) {
+                const t = i * dt;
+                time.push(t);
+
+                const r = 1;  // reference (setpoint)
+                reference.push(r);
+
+                const error = r - y;
+                integral += error * dt;
+                const derivative = (error - prevError) / dt;
+
+                const u = Kp * error + Ki * integral + Kd * derivative;
+
+                // Plant: dy/dt = (u - y) / tau
+                const dydt = (u - y) / tau;
+                y += dydt * dt;
+
+                output.push(y);
+                prevError = error;
+            }
+
+            // Calculate performance metrics
+            const settlingIndex = output.findIndex((val, idx) => {
+                if (idx < output.length - 100) {
+                    const futureVals = output.slice(idx, idx + 100);
+                    return futureVals.every(v => Math.abs(v - 1) < 0.02);
+                }
+                return false;
+            });
+            const settlingTime = settlingIndex > 0 ? (settlingIndex * dt).toFixed(2) : 'N/A';
+
+            const maxOutput = Math.max(...output);
+            const overshoot = ((maxOutput - 1) * 100).toFixed(1);
+
+            const steadyStateError = Math.abs(1 - output[output.length - 1]).toFixed(4);
+
+            let perfHTML = '<h4>制御性能指標</h4>';
+            perfHTML += `<p><strong>整定時間:</strong> ${settlingTime} s (2%基準)</p>`;
+            perfHTML += `<p><strong>オーバーシュート:</strong> ${overshoot}%</p>`;
+            perfHTML += `<p><strong>定常偏差:</strong> ${steadyStateError}</p>`;
+            document.getElementById('pid-performance').innerHTML = perfHTML;
+
+            const ctx = document.getElementById('pidChart');
+            if (charts['pid']) {
+                charts['pid'].destroy();
+            }
+
+            charts['pid'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [
+                        {
+                            label: '目標値',
+                            data: reference,
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [10, 5],
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'PID制御出力',
+                            data: output,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'PID制御のステップ応答'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('pid-result').style.display = 'block';
+        }
+
+        // Quiz Functions
+        function checkAnswer(questionNum, answer) {
+            if (quizAnswers[questionNum].answered) {
+                return;  // Already answered
+            }
+
+            const isCorrect = answer === quizAnswers[questionNum].correct;
+            quizAnswers[questionNum].answered = true;
+
+            // Update score
+            if (isCorrect) {
+                quizScore++;
+                document.getElementById('quiz-score').textContent = quizScore;
+            }
+
+            // Show feedback
+            const feedback = document.getElementById(`feedback-${questionNum}`);
+            const options = document.querySelectorAll(`#question-${questionNum} .quiz-option`);
+
+            options.forEach((opt, idx) => {
+                const optLetter = String.fromCharCode(97 + idx);  // 'a', 'b', 'c', 'd'
+                if (optLetter === quizAnswers[questionNum].correct) {
+                    opt.classList.add('correct');
+                } else if (optLetter === answer) {
+                    opt.classList.add('incorrect');
+                }
+                opt.style.pointerEvents = 'none';  // Disable further clicks
+            });
+
+            if (isCorrect) {
+                feedback.className = 'quiz-feedback correct';
+                feedback.textContent = '✓ 正解です！';
+            } else {
+                feedback.className = 'quiz-feedback incorrect';
+                feedback.textContent = '✗ 不正解です。正解は (' + quizAnswers[questionNum].correct + ') です。';
+            }
+            feedback.style.display = 'block';
+        }
+
+        function resetQuiz() {
+            quizScore = 0;
+            document.getElementById('quiz-score').textContent = '0';
+
+            Object.keys(quizAnswers).forEach(qNum => {
+                quizAnswers[qNum].answered = false;
+
+                const feedback = document.getElementById(`feedback-${qNum}`);
+                feedback.style.display = 'none';
+
+                const options = document.querySelectorAll(`#question-${qNum} .quiz-option`);
+                options.forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    opt.style.pointerEvents = 'auto';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第7章 中間試験 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tool-section {
+            margin-bottom: 30px;
+        }
+
+        .tool-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-field input,
+        .input-field select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .output-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .math-output {
+            font-size: 1.2em;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c33;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #efe;
+            border-left: 4px solid #4c4;
+            padding: 15px;
+            border-radius: 8px;
+            color: #363;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .step-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .step-container .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                min-width: 100%;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第7章 中間試験</h1>
+            <p>インタラクティブ学習ツール - Interactive Learning Tool</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('inverse', event)">逆ラプラス変換</button>
+            <button class="tab-button" onclick="showTab('impulse', event)">インパルス応答→伝達関数</button>
+            <button class="tab-button" onclick="showTab('feedback', event)">フィードバック系</button>
+        </div>
+
+        <!-- Tab 1: Inverse Laplace Transform -->
+        <div id="inverse-tab" class="tab-content active">
+            <div class="tool-section">
+                <h2>逆ラプラス変換計算機 (Inverse Laplace Transform Calculator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> ラプラス関数を選択して、部分分数展開と逆変換の手順を確認できます。
+                </div>
+
+                <div class="input-field">
+                    <label>問題を選択 (Select Problem):</label>
+                    <select id="inverse-select" onchange="updateInverseProblem()">
+                        <option value="simple">単純極: F(s) = 1/[(s+1)(s+2)]</option>
+                        <option value="simple3">単純極(3項): F(s) = 1/[(s+1)(s+2)(s+3)]</option>
+                        <option value="repeated">重根: F(s) = 1/(s+1)²</option>
+                        <option value="repeated3">重根(3次): F(s) = 1/(s+1)³</option>
+                        <option value="complex">複素共役極: F(s) = 1/(s² + 2s + 2)</option>
+                        <option value="mixed">混合: F(s) = (s+3)/[(s+1)(s² + 2s + 2)]</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateInverse()">部分分数展開を表示</button>
+                    <button class="btn btn-secondary" onclick="showTimeResponse()">時間応答グラフ</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>問題 (Problem)</h3>
+                    <div id="inverse-problem"></div>
+                </div>
+
+                <div class="step-container" id="inverse-steps" style="display: none;">
+                    <h3>部分分数展開手順 (Partial Fraction Expansion Steps)</h3>
+                    <div id="inverse-steps-content"></div>
+                </div>
+
+                <div class="output-box" id="inverse-result" style="display: none;">
+                    <h3>逆ラプラス変換 f(t) (Inverse Laplace Transform)</h3>
+                    <div id="inverse-result-content"></div>
+                </div>
+
+                <div class="chart-container" id="inverse-chart-container" style="display: none;">
+                    <canvas id="inverseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Impulse Response to Transfer Function -->
+        <div id="impulse-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>インパルス応答→伝達関数導出 (Transfer Function from Impulse Response)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> インパルス応答g(t)を選択し、ラプラス変換によって伝達関数G(s)を導出します。
+                </div>
+
+                <div class="input-field">
+                    <label>インパルス応答を選択 (Select Impulse Response):</label>
+                    <select id="impulse-select" onchange="updateImpulseResponse()">
+                        <option value="exp">1次系: g(t) = e^(-t)</option>
+                        <option value="exp-scaled">1次系(スケール): g(t) = 2e^(-3t)</option>
+                        <option value="damped-sin">2次系(減衰振動): g(t) = e^(-t)sin(2t)</option>
+                        <option value="underdamped">2次系(不足制動): g(t) = e^(-0.5t)sin(t)</option>
+                        <option value="critically-damped">2次系(臨界制動): g(t) = te^(-t)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateTransferFunction()">伝達関数を導出</button>
+                    <button class="btn btn-secondary" onclick="showPoleZeroPlot()">極・零点プロット</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>インパルス応答 g(t) (Impulse Response)</h3>
+                    <div id="impulse-function"></div>
+                </div>
+
+                <div class="step-container" id="impulse-steps" style="display: none;">
+                    <h3>導出手順 (Derivation Steps)</h3>
+                    <div id="impulse-steps-content"></div>
+                </div>
+
+                <div class="output-box" id="transfer-result" style="display: none;">
+                    <h3>伝達関数 G(s) (Transfer Function)</h3>
+                    <div id="transfer-result-content"></div>
+                </div>
+
+                <div class="grid-2col" id="impulse-charts" style="display: none;">
+                    <div class="chart-container">
+                        <canvas id="impulseResponseChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="poleZeroChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Feedback System Analysis -->
+        <div id="feedback-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>フィードバック系シミュレーター (Feedback System Simulator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> フィードバック制御系のパラメータを入力し、閉ループ伝達関数とステップ応答を計算します。
+                </div>
+
+                <div class="input-field">
+                    <label>システムタイプを選択 (Select System Type):</label>
+                    <select id="feedback-select" onchange="updateFeedbackSystem()">
+                        <option value="first-order">1次系: G(s) = K/(s+a), H(s) = 1</option>
+                        <option value="second-order">2次系: G(s) = ω²/(s² + 2ζωs + ω²), H(s) = 1</option>
+                        <option value="proportional">比例制御: G(s) = 1/s, H(s) = Kp</option>
+                        <option value="general">一般系: G(s) = K/(s(s+a)), H(s) = 1</option>
+                    </select>
+                </div>
+
+                <div id="feedback-parameters" class="input-group">
+                    <!-- Dynamic parameters will be inserted here -->
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateClosedLoop()">閉ループ伝達関数を計算</button>
+                    <button class="btn btn-secondary" onclick="simulateStepResponse()">ステップ応答を表示</button>
+                </div>
+
+                <div class="output-box" id="feedback-block-diagram" style="display: none;">
+                    <h3>ブロック線図 (Block Diagram)</h3>
+                    <div id="block-diagram-content"></div>
+                </div>
+
+                <div class="step-container" id="feedback-steps" style="display: none;">
+                    <h3>閉ループ伝達関数の導出 (Closed-Loop Transfer Function Derivation)</h3>
+                    <div id="feedback-steps-content"></div>
+                </div>
+
+                <div class="output-box" id="closed-loop-result" style="display: none;">
+                    <h3>閉ループ伝達関数 T(s) (Closed-Loop Transfer Function)</h3>
+                    <div id="closed-loop-content"></div>
+                </div>
+
+                <div class="output-box" id="step-response-metrics" style="display: none;">
+                    <h3>ステップ応答の特性 (Step Response Characteristics)</h3>
+                    <div id="metrics-content"></div>
+                </div>
+
+                <div class="chart-container" id="step-response-chart-container" style="display: none;">
+                    <canvas id="stepResponseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let inverseChart = null;
+        let impulseResponseChart = null;
+        let poleZeroChart = null;
+        let stepResponseChart = null;
+
+        // Tab switching
+        function showTab(tabName, event) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // Render math if needed
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ]
+            });
+        }
+
+        // Tab 1: Inverse Laplace Transform Functions
+        function updateInverseProblem() {
+            const type = document.getElementById('inverse-select').value;
+            let problem = '';
+
+            switch(type) {
+                case 'simple':
+                    problem = 'F(s) = \\frac{1}{(s+1)(s+2)}';
+                    break;
+                case 'simple3':
+                    problem = 'F(s) = \\frac{1}{(s+1)(s+2)(s+3)}';
+                    break;
+                case 'repeated':
+                    problem = 'F(s) = \\frac{1}{(s+1)^2}';
+                    break;
+                case 'repeated3':
+                    problem = 'F(s) = \\frac{1}{(s+1)^3}';
+                    break;
+                case 'complex':
+                    problem = 'F(s) = \\frac{1}{s^2 + 2s + 2}';
+                    break;
+                case 'mixed':
+                    problem = 'F(s) = \\frac{s+3}{(s+1)(s^2 + 2s + 2)}';
+                    break;
+            }
+
+            const output = document.getElementById('inverse-problem');
+            output.innerHTML = '<span id="problem-display"></span>';
+            katex.render(problem, document.getElementById('problem-display'), { displayMode: true });
+
+            // Hide previous results
+            document.getElementById('inverse-steps').style.display = 'none';
+            document.getElementById('inverse-result').style.display = 'none';
+            document.getElementById('inverse-chart-container').style.display = 'none';
+        }
+
+        function calculateInverse() {
+            const type = document.getElementById('inverse-select').value;
+            const stepsContainer = document.getElementById('inverse-steps-content');
+            const resultContainer = document.getElementById('inverse-result-content');
+
+            let steps = '';
+            let result = '';
+
+            switch(type) {
+                case 'simple':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式を設定:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-simple"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>A₁を求める:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step2-simple"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <strong>A₂を求める:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step3-simple"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A_1}{s+1} + \\frac{A_2}{s+2}', document.getElementById('step1-simple'), { displayMode: true });
+                    katex.render('A_1 = \\lim_{s \\to -1} (s+1)F(s) = 1', document.getElementById('step2-simple'), { displayMode: true });
+                    katex.render('A_2 = \\lim_{s \\to -2} (s+2)F(s) = -1', document.getElementById('step3-simple'), { displayMode: true });
+                    result = 'f(t) = e^{-t} - e^{-2t}';
+                    break;
+
+                case 'simple3':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式を設定し、各係数を求める</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                A₁ = 1/2, A₂ = -1, A₃ = 1/2
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    result = 'f(t) = \\frac{1}{2}e^{-t} - e^{-2t} + \\frac{1}{2}e^{-3t}';
+                    break;
+
+                case 'repeated':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>重根の公式を適用</strong>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    result = 'f(t) = te^{-t}';
+                    break;
+
+                case 'repeated3':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>3次重根の公式を適用</strong>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    result = 'f(t) = \\frac{1}{2}t^2e^{-t}';
+                    break;
+
+                case 'complex':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>標準形に変形: (s+1)² + 1</strong>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    result = 'f(t) = e^{-t}\\sin(t)';
+                    break;
+
+                case 'mixed':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>部分分数展開を実行</strong>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    result = 'f(t) = e^{-t} + e^{-t}\\sin(t)';
+                    break;
+            }
+
+            document.getElementById('inverse-steps').style.display = 'block';
+            document.getElementById('inverse-result').style.display = 'block';
+            resultContainer.innerHTML = '<span id="result-display"></span>';
+            katex.render(result, document.getElementById('result-display'), { displayMode: true });
+        }
+
+        function showTimeResponse() {
+            calculateInverse();
+            document.getElementById('inverse-chart-container').style.display = 'block';
+
+            const type = document.getElementById('inverse-select').value;
+            const t = [];
+            const y = [];
+
+            for (let i = 0; i <= 100; i++) {
+                const time = i * 0.05;
+                t.push(time);
+
+                let value = 0;
+                switch(type) {
+                    case 'simple':
+                        value = Math.exp(-time) - Math.exp(-2 * time);
+                        break;
+                    case 'simple3':
+                        value = 0.5 * Math.exp(-time) - Math.exp(-2 * time) + 0.5 * Math.exp(-3 * time);
+                        break;
+                    case 'repeated':
+                        value = time * Math.exp(-time);
+                        break;
+                    case 'repeated3':
+                        value = 0.5 * time * time * Math.exp(-time);
+                        break;
+                    case 'complex':
+                        value = Math.exp(-time) * Math.sin(time);
+                        break;
+                    case 'mixed':
+                        value = Math.exp(-time) + Math.exp(-time) * Math.sin(time);
+                        break;
+                }
+                y.push(value);
+            }
+
+            const ctx = document.getElementById('inverseChart').getContext('2d');
+            if (inverseChart) {
+                inverseChart.destroy();
+            }
+
+            inverseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: t,
+                    datasets: [{
+                        label: 'f(t)',
+                        data: y,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '時間応答 f(t) (Time Response)',
+                            font: { size: 18 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'f(t)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Tab 2: Impulse Response Functions
+        function updateImpulseResponse() {
+            const type = document.getElementById('impulse-select').value;
+            let impulse = '';
+
+            switch(type) {
+                case 'exp':
+                    impulse = 'g(t) = e^{-t}';
+                    break;
+                case 'exp-scaled':
+                    impulse = 'g(t) = 2e^{-3t}';
+                    break;
+                case 'damped-sin':
+                    impulse = 'g(t) = e^{-t}\\sin(2t)';
+                    break;
+                case 'underdamped':
+                    impulse = 'g(t) = e^{-0.5t}\\sin(t)';
+                    break;
+                case 'critically-damped':
+                    impulse = 'g(t) = te^{-t}';
+                    break;
+            }
+
+            const output = document.getElementById('impulse-function');
+            output.innerHTML = '<span id="impulse-display"></span>';
+            katex.render(impulse, document.getElementById('impulse-display'), { displayMode: true });
+
+            document.getElementById('impulse-steps').style.display = 'none';
+            document.getElementById('transfer-result').style.display = 'none';
+            document.getElementById('impulse-charts').style.display = 'none';
+        }
+
+        function calculateTransferFunction() {
+            const type = document.getElementById('impulse-select').value;
+            const stepsContainer = document.getElementById('impulse-steps-content');
+            const resultContainer = document.getElementById('transfer-result-content');
+
+            let steps = '';
+            let result = '';
+
+            switch(type) {
+                case 'exp':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>ラプラス変換を適用:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="tf-step1"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('G(s) = \\mathcal{L}\\{e^{-t}\\} = \\frac{1}{s+1}', document.getElementById('tf-step1'), { displayMode: true });
+                    result = 'G(s) = \\frac{1}{s+1}';
+                    break;
+
+                case 'exp-scaled':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>ラプラス変換を適用:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="tf-step1-scaled"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('G(s) = \\mathcal{L}\\{2e^{-3t}\\} = \\frac{2}{s+3}', document.getElementById('tf-step1-scaled'), { displayMode: true });
+                    result = 'G(s) = \\frac{2}{s+3}';
+                    break;
+
+                case 'damped-sin':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>減衰正弦波の変換:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="tf-step1-damped"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('G(s) = \\mathcal{L}\\{e^{-t}\\sin(2t)\\} = \\frac{2}{(s+1)^2 + 4}', document.getElementById('tf-step1-damped'), { displayMode: true });
+                    result = 'G(s) = \\frac{2}{(s+1)^2 + 4}';
+                    break;
+
+                case 'underdamped':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>不足制動系の変換:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="tf-step1-under"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('G(s) = \\mathcal{L}\\{e^{-0.5t}\\sin(t)\\} = \\frac{1}{(s+0.5)^2 + 1}', document.getElementById('tf-step1-under'), { displayMode: true });
+                    result = 'G(s) = \\frac{1}{(s+0.5)^2 + 1}';
+                    break;
+
+                case 'critically-damped':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>臨界制動系の変換:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="tf-step1-crit"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('G(s) = \\mathcal{L}\\{te^{-t}\\} = \\frac{1}{(s+1)^2}', document.getElementById('tf-step1-crit'), { displayMode: true });
+                    result = 'G(s) = \\frac{1}{(s+1)^2}';
+                    break;
+            }
+
+            document.getElementById('impulse-steps').style.display = 'block';
+            document.getElementById('transfer-result').style.display = 'block';
+            resultContainer.innerHTML = '<span id="tf-result-display"></span>';
+            katex.render(result, document.getElementById('tf-result-display'), { displayMode: true });
+        }
+
+        function showPoleZeroPlot() {
+            calculateTransferFunction();
+            document.getElementById('impulse-charts').style.display = 'grid';
+
+            const type = document.getElementById('impulse-select').value;
+
+            // Plot impulse response
+            const t = [];
+            const g = [];
+            for (let i = 0; i <= 100; i++) {
+                const time = i * 0.05;
+                t.push(time);
+
+                let value = 0;
+                switch(type) {
+                    case 'exp':
+                        value = Math.exp(-time);
+                        break;
+                    case 'exp-scaled':
+                        value = 2 * Math.exp(-3 * time);
+                        break;
+                    case 'damped-sin':
+                        value = Math.exp(-time) * Math.sin(2 * time);
+                        break;
+                    case 'underdamped':
+                        value = Math.exp(-0.5 * time) * Math.sin(time);
+                        break;
+                    case 'critically-damped':
+                        value = time * Math.exp(-time);
+                        break;
+                }
+                g.push(value);
+            }
+
+            const ctx1 = document.getElementById('impulseResponseChart').getContext('2d');
+            if (impulseResponseChart) {
+                impulseResponseChart.destroy();
+            }
+
+            impulseResponseChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: t,
+                    datasets: [{
+                        label: 'g(t)',
+                        data: g,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'インパルス応答 g(t)',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'g(t)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Plot pole-zero map
+            let poles = [];
+            switch(type) {
+                case 'exp':
+                    poles = [{x: -1, y: 0}];
+                    break;
+                case 'exp-scaled':
+                    poles = [{x: -3, y: 0}];
+                    break;
+                case 'damped-sin':
+                    poles = [{x: -1, y: 2}, {x: -1, y: -2}];
+                    break;
+                case 'underdamped':
+                    poles = [{x: -0.5, y: 1}, {x: -0.5, y: -1}];
+                    break;
+                case 'critically-damped':
+                    poles = [{x: -1, y: 0}, {x: -1, y: 0}];
+                    break;
+            }
+
+            const ctx2 = document.getElementById('poleZeroChart').getContext('2d');
+            if (poleZeroChart) {
+                poleZeroChart.destroy();
+            }
+
+            poleZeroChart = new Chart(ctx2, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '極 (Poles)',
+                        data: poles,
+                        backgroundColor: 'rgba(234, 67, 53, 0.8)',
+                        borderColor: 'rgba(234, 67, 53, 1)',
+                        pointRadius: 10,
+                        pointStyle: 'crossRot'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '極・零点配置 (Pole-Zero Map)',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '実軸 (Real)'
+                            },
+                            min: -5,
+                            max: 2,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '虚軸 (Imaginary)'
+                            },
+                            min: -3,
+                            max: 3,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Tab 3: Feedback System Functions
+        function updateFeedbackSystem() {
+            const type = document.getElementById('feedback-select').value;
+            const container = document.getElementById('feedback-parameters');
+
+            let html = '';
+
+            switch(type) {
+                case 'first-order':
+                    html = `
+                        <div class="input-field">
+                            <label>ゲイン K:</label>
+                            <input type="number" id="param-K" value="1" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label>極 a:</label>
+                            <input type="number" id="param-a" value="2" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'second-order':
+                    html = `
+                        <div class="input-field">
+                            <label>固有角周波数 ωn:</label>
+                            <input type="number" id="param-omega-n" value="2" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label>減衰比 ζ:</label>
+                            <input type="number" id="param-zeta" value="0.5" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'proportional':
+                    html = `
+                        <div class="input-field">
+                            <label>比例ゲイン Kp:</label>
+                            <input type="number" id="param-Kp" value="2" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'general':
+                    html = `
+                        <div class="input-field">
+                            <label>ゲイン K:</label>
+                            <input type="number" id="param-K-gen" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label>極 a:</label>
+                            <input type="number" id="param-a-gen" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+
+            container.innerHTML = html;
+
+            // Hide previous results
+            document.getElementById('feedback-block-diagram').style.display = 'none';
+            document.getElementById('feedback-steps').style.display = 'none';
+            document.getElementById('closed-loop-result').style.display = 'none';
+            document.getElementById('step-response-metrics').style.display = 'none';
+            document.getElementById('step-response-chart-container').style.display = 'none';
+        }
+
+        function calculateClosedLoop() {
+            const type = document.getElementById('feedback-select').value;
+            const stepsContainer = document.getElementById('feedback-steps-content');
+            const resultContainer = document.getElementById('closed-loop-content');
+
+            let steps = '';
+            let result = '';
+
+            document.getElementById('feedback-block-diagram').style.display = 'block';
+            document.getElementById('block-diagram-content').innerHTML =
+                '<p>フィードバック制御系: T(s) = G(s) / [1 + G(s)H(s)]</p>';
+
+            switch(type) {
+                case 'first-order':
+                    const K = parseFloat(document.getElementById('param-K').value) || 1;
+                    const a = parseFloat(document.getElementById('param-a').value) || 2;
+
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>閉ループ伝達関数を計算:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="fb-step1"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render(
+                        `T(s) = \\frac{${K}/(s+${a})}{1 + ${K}/(s+${a})} = \\frac{${K}}{s + ${a + K}}`,
+                        document.getElementById('fb-step1'),
+                        { displayMode: true }
+                    );
+                    result = `T(s) = \\frac{${K}}{s + ${a + K}}`;
+                    break;
+
+                case 'second-order':
+                    const wn = parseFloat(document.getElementById('param-omega-n').value) || 2;
+                    const zeta = parseFloat(document.getElementById('param-zeta').value) || 0.5;
+
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>標準2次系の閉ループ伝達関数:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="fb-step1-2nd"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    const wn2 = (wn * wn).toFixed(2);
+                    const twzwn = (2 * zeta * wn).toFixed(2);
+                    katex.render(
+                        `T(s) = \\frac{${wn2}}{s^2 + ${twzwn}s + ${wn2}}`,
+                        document.getElementById('fb-step1-2nd'),
+                        { displayMode: true }
+                    );
+                    result = `T(s) = \\frac{${wn2}}{s^2 + ${twzwn}s + ${wn2}}`;
+                    break;
+
+                case 'proportional':
+                    const Kp = parseFloat(document.getElementById('param-Kp').value) || 2;
+
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>比例制御の閉ループ伝達関数:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="fb-step1-prop"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render(
+                        `T(s) = \\frac{1/s}{1 + ${Kp}/s} = \\frac{1}{s + ${Kp}}`,
+                        document.getElementById('fb-step1-prop'),
+                        { displayMode: true }
+                    );
+                    result = `T(s) = \\frac{1}{s + ${Kp}}`;
+                    break;
+
+                case 'general':
+                    const Kgen = parseFloat(document.getElementById('param-K-gen').value) || 10;
+                    const agen = parseFloat(document.getElementById('param-a-gen').value) || 5;
+
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>一般系の閉ループ伝達関数:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="fb-step1-gen"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render(
+                        `T(s) = \\frac{${Kgen}}{s^2 + ${agen}s + ${Kgen}}`,
+                        document.getElementById('fb-step1-gen'),
+                        { displayMode: true }
+                    );
+                    result = `T(s) = \\frac{${Kgen}}{s^2 + ${agen}s + ${Kgen}}`;
+                    break;
+            }
+
+            document.getElementById('feedback-steps').style.display = 'block';
+            document.getElementById('closed-loop-result').style.display = 'block';
+            resultContainer.innerHTML = '<span id="cl-result-display"></span>';
+            katex.render(result, document.getElementById('cl-result-display'), { displayMode: true });
+        }
+
+        function simulateStepResponse() {
+            calculateClosedLoop();
+            document.getElementById('step-response-chart-container').style.display = 'block';
+            document.getElementById('step-response-metrics').style.display = 'block';
+
+            const type = document.getElementById('feedback-select').value;
+            const t = [];
+            const y = [];
+
+            let steadyState = 1;
+            let overshoot = 0;
+            let settlingTime = 0;
+
+            for (let i = 0; i <= 200; i++) {
+                const time = i * 0.05;
+                t.push(time);
+
+                let value = 0;
+                switch(type) {
+                    case 'first-order':
+                        const K = parseFloat(document.getElementById('param-K').value) || 1;
+                        const a = parseFloat(document.getElementById('param-a').value) || 2;
+                        const tau = 1 / (a + K);
+                        value = (K / (a + K)) * (1 - Math.exp(-time / tau));
+                        steadyState = K / (a + K);
+                        settlingTime = 4 * tau;
+                        break;
+
+                    case 'second-order':
+                        const wn = parseFloat(document.getElementById('param-omega-n').value) || 2;
+                        const zeta = parseFloat(document.getElementById('param-zeta').value) || 0.5;
+                        if (zeta < 1) {
+                            const wd = wn * Math.sqrt(1 - zeta * zeta);
+                            const phi = Math.atan(Math.sqrt(1 - zeta * zeta) / zeta);
+                            value = 1 - (Math.exp(-zeta * wn * time) / Math.sqrt(1 - zeta * zeta)) *
+                                    Math.sin(wd * time + phi);
+                            overshoot = (Math.exp(-Math.PI * zeta / Math.sqrt(1 - zeta * zeta)) * 100).toFixed(1);
+                            settlingTime = (4 / (zeta * wn)).toFixed(2);
+                        } else {
+                            value = 1 - Math.exp(-wn * time) * (1 + wn * time);
+                        }
+                        steadyState = 1;
+                        break;
+
+                    case 'proportional':
+                        const Kp = parseFloat(document.getElementById('param-Kp').value) || 2;
+                        value = (1 / Kp) * (1 - Math.exp(-Kp * time));
+                        steadyState = 1 / Kp;
+                        settlingTime = 4 / Kp;
+                        break;
+
+                    case 'general':
+                        const Kgen = parseFloat(document.getElementById('param-K-gen').value) || 10;
+                        const agen = parseFloat(document.getElementById('param-a-gen').value) || 5;
+                        const disc = agen * agen - 4 * Kgen;
+                        if (disc >= 0) {
+                            const r1 = (-agen + Math.sqrt(disc)) / 2;
+                            const r2 = (-agen - Math.sqrt(disc)) / 2;
+                            value = 1 + (r1 * Math.exp(r2 * time) - r2 * Math.exp(r1 * time)) / (r1 - r2);
+                        } else {
+                            const sigma = -agen / 2;
+                            const omega = Math.sqrt(-disc) / 2;
+                            value = 1 - Math.exp(sigma * time) * (Math.cos(omega * time) -
+                                   (sigma / omega) * Math.sin(omega * time));
+                        }
+                        steadyState = 1;
+                        break;
+                }
+                y.push(value);
+            }
+
+            const metricsContainer = document.getElementById('metrics-content');
+            metricsContainer.innerHTML = `
+                <table>
+                    <tr>
+                        <th>特性</th>
+                        <th>値</th>
+                    </tr>
+                    <tr>
+                        <td>定常値 (Steady State)</td>
+                        <td>${steadyState.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>オーバーシュート (Overshoot)</td>
+                        <td>${overshoot}%</td>
+                    </tr>
+                    <tr>
+                        <td>整定時間 (Settling Time)</td>
+                        <td>${settlingTime} s</td>
+                    </tr>
+                </table>
+            `;
+
+            const ctx = document.getElementById('stepResponseChart').getContext('2d');
+            if (stepResponseChart) {
+                stepResponseChart.destroy();
+            }
+
+            stepResponseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: t,
+                    datasets: [{
+                        label: 'ステップ応答 y(t)',
+                        data: y,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ステップ応答 (Step Response)',
+                            font: { size: 18 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力 y(t)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            updateInverseProblem();
+            updateImpulseResponse();
+            updateFeedbackSystem();
+
+            // Render all math
+            setTimeout(() => {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ]
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第8章 FB制御とFF制御 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tool-section {
+            margin-bottom: 30px;
+        }
+
+        .tool-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-field input,
+        .input-field select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .output-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .math-output {
+            font-size: 1.2em;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c33;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #efe;
+            border-left: 4px solid #4c4;
+            padding: 15px;
+            border-radius: 8px;
+            color: #363;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1976d2;
+        }
+
+        .block-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                min-width: 100%;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第8章 FB制御とFF制御</h1>
+            <p>インタラクティブ学習ツール - Interactive Learning Tool</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('fb')">FB制御シミュレータ</button>
+            <button class="tab-button" onclick="showTab('ff')">FF制御シミュレータ</button>
+            <button class="tab-button" onclick="showTab('comparison')">2DOF比較</button>
+        </div>
+
+        <!-- Tab 1: FB Control Simulator -->
+        <div id="fb-tab" class="tab-content active">
+            <div class="tool-section">
+                <h2>フィードバック制御シミュレータ (Feedback Control Simulator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> プラントとコントローラのパラメータを設定し、目標値応答と外乱応答を確認できます。
+                    FB制御では、出力を測定して偏差を小さくするように制御します。
+                </div>
+
+                <div class="block-diagram">
+<pre>
+ブロック線図:
+R(s) ---->(+)----> E(s) ----[C(s)]----> U(s) ----[G(s)]----> Y(s)
+          (-)                                       ↑            |
+           ↑                                      D(s)           |
+           |                                                     |
+           └─────────────────────────────────────────────────────┘
+</pre>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>プラントゲイン K:</label>
+                        <input type="number" id="fb-plant-gain" value="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>プラント時定数 τ [s]:</label>
+                        <input type="number" id="fb-plant-tau" value="1" step="0.1" min="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>コントローラゲイン Kc:</label>
+                        <input type="number" id="fb-controller-gain" value="2" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>外乱の大きさ:</label>
+                        <input type="number" id="fb-disturbance" value="0.5" step="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="simulateFB()">シミュレーション実行</button>
+                    <button class="btn btn-secondary" onclick="calculateFBTransfer()">伝達関数を計算</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>閉ループ伝達関数 (Closed-loop Transfer Function)</h3>
+                    <div id="fb-transfer-output"></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="fbChart"></canvas>
+                </div>
+
+                <div class="tool-section">
+                    <h2>FB制御の特徴 (Characteristics of FB Control)</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>項目</th>
+                                <th>説明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>外乱抑制</strong></td>
+                                <td>ループゲインが大きいほど外乱の影響を小さくできる</td>
+                            </tr>
+                            <tr>
+                                <td><strong>モデル誤差補償</strong></td>
+                                <td>実際のプラントが予想と異なっても、フィードバックで補正</td>
+                            </tr>
+                            <tr>
+                                <td><strong>定常偏差</strong></td>
+                                <td>比例制御のみでは定常偏差が残る（積分制御で除去可能）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>安定性</strong></td>
+                                <td>ゲインが大きすぎると不安定化（振動や発散）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: FF Control Simulator -->
+        <div id="ff-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>フィードフォワード制御シミュレータ (Feedforward Control Simulator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> FF制御では、プラントモデルに基づいて事前に操作量を計算します。
+                    外乱が入ると、フィードバックがないため補正できません。
+                </div>
+
+                <div class="block-diagram">
+<pre>
+ブロック線図:
+                F(s)
+R(s) ----[FF補償器]----> U(s) ----[G(s)]----> Y(s)
+                                     ↑
+                                   D(s) 外乱
+</pre>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>プラントゲイン K:</label>
+                        <input type="number" id="ff-plant-gain" value="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>プラント時定数 τ [s]:</label>
+                        <input type="number" id="ff-plant-tau" value="1" step="0.1" min="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>FF補償器ゲイン F:</label>
+                        <input type="number" id="ff-compensator-gain" value="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>外乱の大きさ:</label>
+                        <input type="number" id="ff-disturbance" value="0.5" step="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="simulateFF()">シミュレーション実行</button>
+                    <button class="btn btn-secondary" onclick="calculateFFTransfer()">伝達関数を計算</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>開ループ伝達関数 (Open-loop Transfer Function)</h3>
+                    <div id="ff-transfer-output"></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="ffChart"></canvas>
+                </div>
+
+                <div class="tool-section">
+                    <h2>FF制御の特徴 (Characteristics of FF Control)</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>項目</th>
+                                <th>説明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>外乱への応答</strong></td>
+                                <td>外乱を測定していないため、補正できない</td>
+                            </tr>
+                            <tr>
+                                <td><strong>モデル精度</strong></td>
+                                <td>プラントモデルが正確でないと、目標値に到達しない</td>
+                            </tr>
+                            <tr>
+                                <td><strong>応答速度</strong></td>
+                                <td>フィードバック経路がないため、応答が速い</td>
+                            </tr>
+                            <tr>
+                                <td><strong>安定性</strong></td>
+                                <td>常に安定（フィードバックループがないため）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="info-box">
+                        <strong>理想的なFF補償器:</strong> F(s) = 1/G(s) のとき、Y(s) = R(s) となります。
+                        しかし、実際には G(s) の逆系が実現できない場合や、モデル誤差により理想的な追従は困難です。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 2DOF Comparison -->
+        <div id="comparison-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>2自由度制御比較ツール (2-DOF Control Comparison)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> FF制御、FB制御、2DOF制御（FF+FB）の応答を比較できます。
+                    2DOF制御では、FFの速さとFBの精度・外乱抑制の両方を活かせます。
+                </div>
+
+                <div class="block-diagram">
+<pre>
+2DOF制御のブロック線図:
+         FF(s)
+R(s) ----[FF補償器]---->(+)
+          |               |
+          |              U(s) ----[G(s)]----> Y(s)
+          |               ↑         ↑           |
+          |             (+)        D(s)         |
+          |               |                     |
+          └---->(-)---> E(s)--[C(s)]            |
+                (+)                             |
+                 ↑                              |
+                 └──────────────────────────────┘
+</pre>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>プラントゲイン K:</label>
+                        <input type="number" id="comp-plant-gain" value="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>プラント時定数 τ [s]:</label>
+                        <input type="number" id="comp-plant-tau" value="1" step="0.1" min="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>FBコントローラゲイン Kc:</label>
+                        <input type="number" id="comp-fb-gain" value="2" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>FF補償器ゲイン F:</label>
+                        <input type="number" id="comp-ff-gain" value="1" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>外乱投入時刻 [s]:</label>
+                        <input type="number" id="comp-disturbance-time" value="5" step="0.5" min="0">
+                    </div>
+                    <div class="input-field">
+                        <label>外乱の大きさ:</label>
+                        <input type="number" id="comp-disturbance" value="0.5" step="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="compareAll()">全制御方式を比較</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+
+                <div class="tool-section">
+                    <h2>制御方式の比較表 (Comparison Table)</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>特性</th>
+                                <th>FF制御</th>
+                                <th>FB制御</th>
+                                <th>2DOF制御</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>目標値追従</strong></td>
+                                <td>モデルが正確なら良好</td>
+                                <td>良好（ゲイン次第）</td>
+                                <td>優秀（最速）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>外乱抑制</strong></td>
+                                <td>不可能</td>
+                                <td>可能</td>
+                                <td>可能</td>
+                            </tr>
+                            <tr>
+                                <td><strong>モデル誤差</strong></td>
+                                <td>影響大</td>
+                                <td>補償可能</td>
+                                <td>補償可能</td>
+                            </tr>
+                            <tr>
+                                <td><strong>応答速度</strong></td>
+                                <td>速い</td>
+                                <td>やや遅い</td>
+                                <td>速い</td>
+                            </tr>
+                            <tr>
+                                <td><strong>実装複雑さ</strong></td>
+                                <td>簡単</td>
+                                <td>中程度</td>
+                                <td>やや複雑</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="output-box">
+                        <h3>2DOF制御の設計手順</h3>
+                        <ol style="margin-left: 20px; line-height: 1.8;">
+                            <li><strong>Step 1:</strong> FB制御器 C(s) を設計して、安定性と外乱抑制性能を確保</li>
+                            <li><strong>Step 2:</strong> FF補償器 FF(s) を設計して、目標値追従性能を改善</li>
+                            <li><strong>Point:</strong> FFとFBを独立に設計できるのが2DOF制御の利点</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global chart variables
+        let fbChart = null;
+        let ffChart = null;
+        let comparisonChart = null;
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Render math if needed
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ]
+                });
+            }
+        }
+
+        // First-order system step response
+        function stepResponse(K, tau, t) {
+            return K * (1 - Math.exp(-t / tau));
+        }
+
+        // FB Control Simulation
+        function simulateFB() {
+            const K = parseFloat(document.getElementById('fb-plant-gain').value);
+            const tau = parseFloat(document.getElementById('fb-plant-tau').value);
+            const Kc = parseFloat(document.getElementById('fb-controller-gain').value);
+            const disturbance = parseFloat(document.getElementById('fb-disturbance').value);
+
+            // Closed-loop parameters
+            const Kcl = (K * Kc) / (1 + K * Kc);
+            const tauCl = tau / (1 + K * Kc);
+
+            // Time array
+            const tMax = 10;
+            const dt = 0.05;
+            const timePoints = [];
+            const referenceData = [];
+            const outputData = [];
+            const outputWithDisturbanceData = [];
+
+            for (let t = 0; t <= tMax; t += dt) {
+                timePoints.push(t);
+                referenceData.push(1);
+
+                // Step response
+                const y = stepResponse(Kcl, tauCl, t);
+                outputData.push(y);
+
+                // Response with disturbance at t=5s
+                let yDist = y;
+                if (t >= 5) {
+                    const tDist = t - 5;
+                    const distEffect = K / (1 + K * Kc) * stepResponse(1, tauCl, tDist) * disturbance;
+                    yDist = y + distEffect;
+                }
+                outputWithDisturbanceData.push(yDist);
+            }
+
+            // Create chart
+            const ctx = document.getElementById('fbChart').getContext('2d');
+
+            if (fbChart) {
+                fbChart.destroy();
+            }
+
+            fbChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [
+                        {
+                            label: '目標値 r(t)',
+                            data: referenceData,
+                            borderColor: 'rgba(100, 100, 100, 0.5)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '出力 y(t) (外乱なし)',
+                            data: outputData,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '出力 y(t) (外乱あり t≥5s)',
+                            data: outputWithDisturbanceData,
+                            borderColor: 'rgba(245, 87, 108, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'FB制御のステップ応答と外乱応答',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            },
+                            min: -0.2,
+                            max: 1.8
+                        }
+                    }
+                }
+            });
+        }
+
+        // Calculate FB Transfer Function
+        function calculateFBTransfer() {
+            const K = parseFloat(document.getElementById('fb-plant-gain').value);
+            const tau = parseFloat(document.getElementById('fb-plant-tau').value);
+            const Kc = parseFloat(document.getElementById('fb-controller-gain').value);
+
+            const output = document.getElementById('fb-transfer-output');
+            output.innerHTML = `
+                <div class="math-output">
+                    <strong>プラント G(s):</strong><br>
+                    <span id="fb-plant"></span>
+                </div>
+                <div class="math-output">
+                    <strong>コントローラ C(s):</strong><br>
+                    <span id="fb-controller"></span>
+                </div>
+                <div class="math-output">
+                    <strong>目標値→出力の伝達関数:</strong><br>
+                    <span id="fb-cl"></span>
+                </div>
+                <div class="math-output">
+                    <strong>外乱→出力の伝達関数:</strong><br>
+                    <span id="fb-dist"></span>
+                </div>
+            `;
+
+            katex.render(`G(s) = \\frac{${K}}{${tau}s + 1}`, document.getElementById('fb-plant'));
+            katex.render(`C(s) = ${Kc}`, document.getElementById('fb-controller'));
+            katex.render(`\\frac{Y(s)}{R(s)} = \\frac{${K} \\cdot ${Kc}}{${tau}s + 1 + ${K} \\cdot ${Kc}} = \\frac{${(K*Kc).toFixed(2)}}{${tau.toFixed(2)}s + ${(1 + K*Kc).toFixed(2)}}`, document.getElementById('fb-cl'));
+            katex.render(`\\frac{Y(s)}{D(s)} = \\frac{${K}}{${tau}s + 1 + ${K} \\cdot ${Kc}} = \\frac{${K.toFixed(2)}}{${tau.toFixed(2)}s + ${(1 + K*Kc).toFixed(2)}}`, document.getElementById('fb-dist'));
+        }
+
+        // FF Control Simulation
+        function simulateFF() {
+            const K = parseFloat(document.getElementById('ff-plant-gain').value);
+            const tau = parseFloat(document.getElementById('ff-plant-tau').value);
+            const F = parseFloat(document.getElementById('ff-compensator-gain').value);
+            const disturbance = parseFloat(document.getElementById('ff-disturbance').value);
+
+            // Open-loop parameters
+            const Kol = K * F;
+
+            // Time array
+            const tMax = 10;
+            const dt = 0.05;
+            const timePoints = [];
+            const referenceData = [];
+            const outputData = [];
+            const outputWithDisturbanceData = [];
+
+            for (let t = 0; t <= tMax; t += dt) {
+                timePoints.push(t);
+                referenceData.push(1);
+
+                // Step response
+                const y = stepResponse(Kol, tau, t);
+                outputData.push(y);
+
+                // Response with disturbance at t=5s
+                let yDist = y;
+                if (t >= 5) {
+                    const tDist = t - 5;
+                    const distEffect = stepResponse(K, tau, tDist) * disturbance;
+                    yDist = y + distEffect;
+                }
+                outputWithDisturbanceData.push(yDist);
+            }
+
+            // Create chart
+            const ctx = document.getElementById('ffChart').getContext('2d');
+
+            if (ffChart) {
+                ffChart.destroy();
+            }
+
+            ffChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [
+                        {
+                            label: '目標値 r(t)',
+                            data: referenceData,
+                            borderColor: 'rgba(100, 100, 100, 0.5)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '出力 y(t) (外乱なし)',
+                            data: outputData,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '出力 y(t) (外乱あり t≥5s)',
+                            data: outputWithDisturbanceData,
+                            borderColor: 'rgba(245, 87, 108, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'FF制御のステップ応答と外乱応答',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            },
+                            min: -0.2,
+                            max: 2.0
+                        }
+                    }
+                }
+            });
+        }
+
+        // Calculate FF Transfer Function
+        function calculateFFTransfer() {
+            const K = parseFloat(document.getElementById('ff-plant-gain').value);
+            const tau = parseFloat(document.getElementById('ff-plant-tau').value);
+            const F = parseFloat(document.getElementById('ff-compensator-gain').value);
+
+            const output = document.getElementById('ff-transfer-output');
+            output.innerHTML = `
+                <div class="math-output">
+                    <strong>プラント G(s):</strong><br>
+                    <span id="ff-plant"></span>
+                </div>
+                <div class="math-output">
+                    <strong>FF補償器 F(s):</strong><br>
+                    <span id="ff-compensator"></span>
+                </div>
+                <div class="math-output">
+                    <strong>目標値→出力の伝達関数:</strong><br>
+                    <span id="ff-ol"></span>
+                </div>
+                <div class="math-output">
+                    <strong>外乱→出力の伝達関数:</strong><br>
+                    <span id="ff-dist"></span>
+                </div>
+            `;
+
+            katex.render(`G(s) = \\frac{${K}}{${tau}s + 1}`, document.getElementById('ff-plant'));
+            katex.render(`F(s) = ${F}`, document.getElementById('ff-compensator'));
+            katex.render(`\\frac{Y(s)}{R(s)} = G(s) \\cdot F(s) = \\frac{${(K*F).toFixed(2)}}{${tau.toFixed(2)}s + 1}`, document.getElementById('ff-ol'));
+            katex.render(`\\frac{Y(s)}{D(s)} = G(s) = \\frac{${K}}{${tau}s + 1}`, document.getElementById('ff-dist'));
+        }
+
+        // Compare All Control Methods
+        function compareAll() {
+            const K = parseFloat(document.getElementById('comp-plant-gain').value);
+            const tau = parseFloat(document.getElementById('comp-plant-tau').value);
+            const Kc = parseFloat(document.getElementById('comp-fb-gain').value);
+            const F = parseFloat(document.getElementById('comp-ff-gain').value);
+            const distTime = parseFloat(document.getElementById('comp-disturbance-time').value);
+            const disturbance = parseFloat(document.getElementById('comp-disturbance').value);
+
+            // Parameters for different control methods
+            const KolFF = K * F;
+            const KclFB = (K * Kc) / (1 + K * Kc);
+            const tauClFB = tau / (1 + K * Kc);
+
+            // 2DOF: FF + FB
+            const Kcl2DOF = (K * (F + Kc)) / (1 + K * Kc);
+            const tauCl2DOF = tau / (1 + K * Kc);
+
+            // Time array
+            const tMax = 10;
+            const dt = 0.05;
+            const timePoints = [];
+            const referenceData = [];
+            const outputFF = [];
+            const outputFB = [];
+            const output2DOF = [];
+
+            for (let t = 0; t <= tMax; t += dt) {
+                timePoints.push(t);
+                referenceData.push(1);
+
+                // FF Control
+                let yFF = stepResponse(KolFF, tau, t);
+                if (t >= distTime) {
+                    const tDist = t - distTime;
+                    yFF += stepResponse(K, tau, tDist) * disturbance;
+                }
+                outputFF.push(yFF);
+
+                // FB Control
+                let yFB = stepResponse(KclFB, tauClFB, t);
+                if (t >= distTime) {
+                    const tDist = t - distTime;
+                    const distEffect = K / (1 + K * Kc) * stepResponse(1, tauClFB, tDist) * disturbance;
+                    yFB += distEffect;
+                }
+                outputFB.push(yFB);
+
+                // 2DOF Control
+                let y2DOF = stepResponse(Kcl2DOF, tauCl2DOF, t);
+                if (t >= distTime) {
+                    const tDist = t - distTime;
+                    const distEffect = K / (1 + K * Kc) * stepResponse(1, tauCl2DOF, tDist) * disturbance;
+                    y2DOF += distEffect;
+                }
+                output2DOF.push(y2DOF);
+            }
+
+            // Create chart
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            comparisonChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [
+                        {
+                            label: '目標値 r(t)',
+                            data: referenceData,
+                            borderColor: 'rgba(100, 100, 100, 0.5)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'FF制御',
+                            data: outputFF,
+                            borderColor: 'rgba(245, 166, 35, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'FB制御',
+                            data: outputFB,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '2DOF制御 (FF+FB)',
+                            data: output2DOF,
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '制御方式の比較 (t=' + distTime.toFixed(1) + 's で外乱投入)',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            },
+                            min: -0.2,
+                            max: 2.5
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            // Run initial simulations
+            simulateFB();
+            calculateFBTransfer();
+
+            // Render all math
+            setTimeout(() => {
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ]
+                    });
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

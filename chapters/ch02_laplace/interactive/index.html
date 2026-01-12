@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第2章 複素数とラプラス変換 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tool-section {
+            margin-bottom: 30px;
+        }
+
+        .tool-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-field input,
+        .input-field select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .output-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .math-output {
+            font-size: 1.2em;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 4px solid #f44;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c33;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #efe;
+            border-left: 4px solid #4c4;
+            padding: 15px;
+            border-radius: 8px;
+            color: #363;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .step-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .step-container .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                min-width: 100%;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第2章 複素数とラプラス変換</h1>
+            <p>インタラクティブ学習ツール - Interactive Learning Tool</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('complex')">複素数可視化</button>
+            <button class="tab-button" onclick="showTab('laplace')">ラプラス変換</button>
+            <button class="tab-button" onclick="showTab('partial')">部分分数展開</button>
+        </div>
+
+        <!-- Tab 1: Complex Number Visualization -->
+        <div id="complex-tab" class="tab-content active">
+            <div class="tool-section">
+                <h2>複素数可視化ツール (Complex Number Visualization)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> 複素数を入力して「プロット」をクリックすると、複素平面上に点が表示されます。
+                    座標変換機能で、直交座標⇔極座標⇔指数形式の変換を確認できます。
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>実部 (Real Part) a:</label>
+                        <input type="number" id="real" value="3" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label>虚部 (Imaginary Part) b:</label>
+                        <input type="number" id="imag" value="4" step="0.1">
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="plotComplex()">プロット</button>
+                    <button class="btn btn-secondary" onclick="convertCoordinates()">座標変換</button>
+                    <button class="btn btn-secondary" onclick="clearPlot()">クリア</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>複素数の表現 (Complex Number Representations)</h3>
+                    <div id="complex-output"></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="complexPlane"></canvas>
+                </div>
+
+                <div class="tool-section">
+                    <h2>複素数演算 (Complex Number Operations)</h2>
+
+                    <div class="grid-2col">
+                        <div>
+                            <h3>複素数 z₁:</h3>
+                            <div class="input-field">
+                                <label>実部 a₁:</label>
+                                <input type="number" id="z1-real" value="2" step="0.1">
+                            </div>
+                            <div class="input-field">
+                                <label>虚部 b₁:</label>
+                                <input type="number" id="z1-imag" value="3" step="0.1">
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3>複素数 z₂:</h3>
+                            <div class="input-field">
+                                <label>実部 a₂:</label>
+                                <input type="number" id="z2-real" value="1" step="0.1">
+                            </div>
+                            <div class="input-field">
+                                <label>虚部 b₂:</label>
+                                <input type="number" id="z2-imag" value="-1" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button class="btn" onclick="complexAdd()">加算 (z₁ + z₂)</button>
+                        <button class="btn" onclick="complexSubtract()">減算 (z₁ - z₂)</button>
+                        <button class="btn" onclick="complexMultiply()">乗算 (z₁ × z₂)</button>
+                        <button class="btn" onclick="complexDivide()">除算 (z₁ ÷ z₂)</button>
+                    </div>
+
+                    <div class="output-box">
+                        <h3>演算結果 (Result)</h3>
+                        <div id="operation-output"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Laplace Transform -->
+        <div id="laplace-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>ラプラス変換計算ツール (Laplace Transform Calculator)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> プリセット関数を選択するか、パラメータを入力してラプラス変換を計算します。
+                </div>
+
+                <div class="input-field">
+                    <label>関数を選択 (Select Function):</label>
+                    <select id="function-select" onchange="updateParameters()">
+                        <option value="step">単位ステップ: f(t) = 1</option>
+                        <option value="exp">指数関数: f(t) = e^(-at)</option>
+                        <option value="ramp">ランプ関数: f(t) = t</option>
+                        <option value="sin">正弦関数: f(t) = sin(ωt)</option>
+                        <option value="cos">余弦関数: f(t) = cos(ωt)</option>
+                        <option value="tn">べき関数: f(t) = t^n</option>
+                        <option value="exp-sin">減衰正弦: f(t) = e^(-at)sin(ωt)</option>
+                        <option value="exp-cos">減衰余弦: f(t) = e^(-at)cos(ωt)</option>
+                    </select>
+                </div>
+
+                <div id="parameters-container" class="input-group">
+                    <!-- Dynamic parameters will be inserted here -->
+                </div>
+
+                <div>
+                    <button class="btn" onclick="calculateLaplace()">ラプラス変換を計算</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>変換結果 (Transform Result)</h3>
+                    <div id="laplace-output"></div>
+                </div>
+
+                <div class="tool-section">
+                    <h2>基本変換表 (Basic Transform Table)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>時間領域 f(t)</th>
+                                <th>ラプラス領域 F(s)</th>
+                                <th>備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="math-inline">1</span></td>
+                                <td><span class="math-inline">\frac{1}{s}</span></td>
+                                <td>単位ステップ</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">e^{-at}</span></td>
+                                <td><span class="math-inline">\frac{1}{s+a}</span></td>
+                                <td>指数関数</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">t</span></td>
+                                <td><span class="math-inline">\frac{1}{s^2}</span></td>
+                                <td>ランプ関数</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">t^n</span></td>
+                                <td><span class="math-inline">\frac{n!}{s^{n+1}}</span></td>
+                                <td>べき関数</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">\sin(\omega t)</span></td>
+                                <td><span class="math-inline">\frac{\omega}{s^2 + \omega^2}</span></td>
+                                <td>正弦関数</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">\cos(\omega t)</span></td>
+                                <td><span class="math-inline">\frac{s}{s^2 + \omega^2}</span></td>
+                                <td>余弦関数</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">e^{-at}\sin(\omega t)</span></td>
+                                <td><span class="math-inline">\frac{\omega}{(s+a)^2 + \omega^2}</span></td>
+                                <td>減衰正弦</td>
+                            </tr>
+                            <tr>
+                                <td><span class="math-inline">e^{-at}\cos(\omega t)</span></td>
+                                <td><span class="math-inline">\frac{s+a}{(s+a)^2 + \omega^2}</span></td>
+                                <td>減衰余弦</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Partial Fraction Expansion -->
+        <div id="partial-tab" class="tab-content">
+            <div class="tool-section">
+                <h2>部分分数展開練習ツール (Partial Fraction Expansion Tool)</h2>
+
+                <div class="info-box">
+                    <strong>使い方:</strong> 有理関数のタイプを選択し、展開のステップを確認できます。
+                </div>
+
+                <div class="input-field">
+                    <label>問題タイプを選択 (Select Problem Type):</label>
+                    <select id="partial-type" onchange="updatePartialProblem()">
+                        <option value="simple">単純極: F(s) = 1/[(s+1)(s+2)]</option>
+                        <option value="simple3">単純極(3項): F(s) = 1/[(s+1)(s+2)(s+3)]</option>
+                        <option value="repeated">重根: F(s) = 1/(s+1)²</option>
+                        <option value="repeated3">重根(3次): F(s) = 1/(s+1)³</option>
+                        <option value="complex">複素共役極: F(s) = 1/(s² + 2s + 2)</option>
+                        <option value="mixed">混合: F(s) = (s+3)/[(s+1)(s² + 2s + 2)]</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button class="btn" onclick="expandPartialFraction()">展開を表示</button>
+                    <button class="btn btn-secondary" onclick="showInverseLaplace()">逆変換を表示</button>
+                </div>
+
+                <div class="output-box">
+                    <h3>問題 (Problem)</h3>
+                    <div id="partial-problem"></div>
+                </div>
+
+                <div class="step-container" id="partial-steps" style="display: none;">
+                    <h3>展開手順 (Expansion Steps)</h3>
+                    <div id="steps-content"></div>
+                </div>
+
+                <div class="output-box" id="partial-result" style="display: none;">
+                    <h3>部分分数展開結果 (Partial Fraction Result)</h3>
+                    <div id="result-content"></div>
+                </div>
+
+                <div class="output-box" id="inverse-result" style="display: none;">
+                    <h3>逆ラプラス変換 f(t) (Inverse Laplace Transform)</h3>
+                    <div id="inverse-content"></div>
+                </div>
+
+                <div class="tool-section">
+                    <h2>部分分数展開の基本公式 (Basic Formulas)</h2>
+
+                    <div class="step">
+                        <strong>1. 単純極の場合 (Simple Poles):</strong>
+                        <div class="math-output">
+                            $$F(s) = \frac{N(s)}{(s-p_1)(s-p_2)\cdots(s-p_n)} = \frac{A_1}{s-p_1} + \frac{A_2}{s-p_2} + \cdots + \frac{A_n}{s-p_n}$$
+                        </div>
+                        <div class="math-output">
+                            $$A_i = \lim_{s \to p_i} (s-p_i)F(s)$$
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <strong>2. 重根の場合 (Repeated Poles):</strong>
+                        <div class="math-output">
+                            $$F(s) = \frac{N(s)}{(s-p)^m} = \frac{A_1}{s-p} + \frac{A_2}{(s-p)^2} + \cdots + \frac{A_m}{(s-p)^m}$$
+                        </div>
+                        <div class="math-output">
+                            $$A_k = \frac{1}{(m-k)!} \lim_{s \to p} \frac{d^{m-k}}{ds^{m-k}}[(s-p)^m F(s)]$$
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <strong>3. 複素共役極の場合 (Complex Conjugate Poles):</strong>
+                        <div class="math-output">
+                            $$F(s) = \frac{N(s)}{(s-\alpha-j\omega)(s-\alpha+j\omega)} = \frac{A}{s-\alpha-j\omega} + \frac{A^*}{s-\alpha+j\omega}$$
+                        </div>
+                        <p style="margin-top: 10px; color: #666;">
+                            実際の計算では、実部と虚部に分けて扱うと便利です。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let complexChart = null;
+        let complexPoints = [];
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Render math if needed
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ]
+            });
+        }
+
+        // Initialize complex plane chart
+        function initComplexPlane() {
+            const ctx = document.getElementById('complexPlane').getContext('2d');
+
+            if (complexChart) {
+                complexChart.destroy();
+            }
+
+            complexChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '複素数',
+                        data: complexPoints,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '複素平面 (Complex Plane)',
+                            font: { size: 18 }
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '実軸 (Real Axis)',
+                                font: { size: 14 }
+                            },
+                            min: -10,
+                            max: 10,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'center',
+                            title: {
+                                display: true,
+                                text: '虚軸 (Imaginary Axis)',
+                                font: { size: 14 }
+                            },
+                            min: -10,
+                            max: 10,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Plot complex number
+        function plotComplex() {
+            const real = parseFloat(document.getElementById('real').value);
+            const imag = parseFloat(document.getElementById('imag').value);
+
+            if (isNaN(real) || isNaN(imag)) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            complexPoints.push({ x: real, y: imag });
+            initComplexPlane();
+
+            // Display representations
+            displayComplexRepresentations(real, imag);
+        }
+
+        // Display complex number representations
+        function displayComplexRepresentations(a, b) {
+            const r = Math.sqrt(a * a + b * b);
+            const theta = Math.atan2(b, a);
+            const thetaDeg = theta * 180 / Math.PI;
+
+            const output = document.getElementById('complex-output');
+            output.innerHTML = `
+                <div class="math-output">
+                    <strong>直交座標形式 (Rectangular Form):</strong><br>
+                    <span id="rect-form"></span>
+                </div>
+                <div class="math-output">
+                    <strong>極座標形式 (Polar Form):</strong><br>
+                    <span id="polar-form"></span>
+                </div>
+                <div class="math-output">
+                    <strong>指数形式 (Exponential Form):</strong><br>
+                    <span id="exp-form"></span>
+                </div>
+                <div class="math-output">
+                    <strong>数値:</strong><br>
+                    絶対値 r = ${r.toFixed(4)}<br>
+                    偏角 θ = ${theta.toFixed(4)} rad = ${thetaDeg.toFixed(2)}°
+                </div>
+            `;
+
+            // Render with KaTeX
+            katex.render(`z = ${a} ${b >= 0 ? '+' : ''} ${b}j`, document.getElementById('rect-form'));
+            katex.render(`z = ${r.toFixed(4)}(\\cos ${theta.toFixed(4)} + j\\sin ${theta.toFixed(4)})`, document.getElementById('polar-form'));
+            katex.render(`z = ${r.toFixed(4)}e^{j${theta.toFixed(4)}}`, document.getElementById('exp-form'));
+        }
+
+        // Convert coordinates
+        function convertCoordinates() {
+            const real = parseFloat(document.getElementById('real').value);
+            const imag = parseFloat(document.getElementById('imag').value);
+
+            if (isNaN(real) || isNaN(imag)) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            displayComplexRepresentations(real, imag);
+        }
+
+        // Clear plot
+        function clearPlot() {
+            complexPoints = [];
+            initComplexPlane();
+            document.getElementById('complex-output').innerHTML = '<p>複素数をプロットしてください</p>';
+        }
+
+        // Complex number operations
+        function complexAdd() {
+            const a1 = parseFloat(document.getElementById('z1-real').value);
+            const b1 = parseFloat(document.getElementById('z1-imag').value);
+            const a2 = parseFloat(document.getElementById('z2-real').value);
+            const b2 = parseFloat(document.getElementById('z2-imag').value);
+
+            const resultReal = a1 + a2;
+            const resultImag = b1 + b2;
+
+            displayOperationResult('加算', a1, b1, a2, b2, resultReal, resultImag, '+');
+        }
+
+        function complexSubtract() {
+            const a1 = parseFloat(document.getElementById('z1-real').value);
+            const b1 = parseFloat(document.getElementById('z1-imag').value);
+            const a2 = parseFloat(document.getElementById('z2-real').value);
+            const b2 = parseFloat(document.getElementById('z2-imag').value);
+
+            const resultReal = a1 - a2;
+            const resultImag = b1 - b2;
+
+            displayOperationResult('減算', a1, b1, a2, b2, resultReal, resultImag, '-');
+        }
+
+        function complexMultiply() {
+            const a1 = parseFloat(document.getElementById('z1-real').value);
+            const b1 = parseFloat(document.getElementById('z1-imag').value);
+            const a2 = parseFloat(document.getElementById('z2-real').value);
+            const b2 = parseFloat(document.getElementById('z2-imag').value);
+
+            // (a1 + jb1)(a2 + jb2) = (a1*a2 - b1*b2) + j(a1*b2 + b1*a2)
+            const resultReal = a1 * a2 - b1 * b2;
+            const resultImag = a1 * b2 + b1 * a2;
+
+            displayOperationResult('乗算', a1, b1, a2, b2, resultReal, resultImag, '\\times');
+        }
+
+        function complexDivide() {
+            const a1 = parseFloat(document.getElementById('z1-real').value);
+            const b1 = parseFloat(document.getElementById('z1-imag').value);
+            const a2 = parseFloat(document.getElementById('z2-real').value);
+            const b2 = parseFloat(document.getElementById('z2-imag').value);
+
+            if (a2 === 0 && b2 === 0) {
+                document.getElementById('operation-output').innerHTML = '<div class="error-message">エラー: ゼロ除算はできません</div>';
+                return;
+            }
+
+            // Division: multiply by conjugate
+            const denom = a2 * a2 + b2 * b2;
+            const resultReal = (a1 * a2 + b1 * b2) / denom;
+            const resultImag = (b1 * a2 - a1 * b2) / denom;
+
+            displayOperationResult('除算', a1, b1, a2, b2, resultReal, resultImag, '\\div');
+        }
+
+        function displayOperationResult(operation, a1, b1, a2, b2, resReal, resImag, symbol) {
+            const output = document.getElementById('operation-output');
+            output.innerHTML = `
+                <div class="math-output">
+                    <strong>${operation}結果:</strong><br>
+                    <span id="op-equation"></span>
+                </div>
+                <div class="math-output">
+                    <strong>数値:</strong><br>
+                    実部 = ${resReal.toFixed(4)}<br>
+                    虚部 = ${resImag.toFixed(4)}
+                </div>
+            `;
+
+            const z1Str = `(${a1} ${b1 >= 0 ? '+' : ''} ${b1}j)`;
+            const z2Str = `(${a2} ${b2 >= 0 ? '+' : ''} ${b2}j)`;
+            const resStr = `${resReal.toFixed(4)} ${resImag >= 0 ? '+' : ''} ${resImag.toFixed(4)}j`;
+
+            katex.render(`${z1Str} ${symbol} ${z2Str} = ${resStr}`, document.getElementById('op-equation'));
+        }
+
+        // Laplace Transform functions
+        function updateParameters() {
+            const funcType = document.getElementById('function-select').value;
+            const container = document.getElementById('parameters-container');
+
+            let html = '';
+
+            switch(funcType) {
+                case 'exp':
+                case 'exp-sin':
+                case 'exp-cos':
+                    html += `
+                        <div class="input-field">
+                            <label>パラメータ a:</label>
+                            <input type="number" id="param-a" value="1" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+
+            switch(funcType) {
+                case 'sin':
+                case 'cos':
+                case 'exp-sin':
+                case 'exp-cos':
+                    html += `
+                        <div class="input-field">
+                            <label>角周波数 ω:</label>
+                            <input type="number" id="param-omega" value="2" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+
+            if (funcType === 'tn') {
+                html += `
+                    <div class="input-field">
+                        <label>べき数 n:</label>
+                        <input type="number" id="param-n" value="2" step="1" min="0">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function calculateLaplace() {
+            const funcType = document.getElementById('function-select').value;
+            let result = '';
+            let timeFunc = '';
+            let laplaceFunc = '';
+
+            switch(funcType) {
+                case 'step':
+                    timeFunc = 'f(t) = 1';
+                    laplaceFunc = 'F(s) = \\frac{1}{s}';
+                    break;
+
+                case 'exp':
+                    const a = parseFloat(document.getElementById('param-a').value);
+                    timeFunc = `f(t) = e^{-${a}t}`;
+                    laplaceFunc = `F(s) = \\frac{1}{s + ${a}}`;
+                    break;
+
+                case 'ramp':
+                    timeFunc = 'f(t) = t';
+                    laplaceFunc = 'F(s) = \\frac{1}{s^2}';
+                    break;
+
+                case 'sin':
+                    const omegaSin = parseFloat(document.getElementById('param-omega').value);
+                    timeFunc = `f(t) = \\sin(${omegaSin}t)`;
+                    laplaceFunc = `F(s) = \\frac{${omegaSin}}{s^2 + ${omegaSin * omegaSin}}`;
+                    break;
+
+                case 'cos':
+                    const omegaCos = parseFloat(document.getElementById('param-omega').value);
+                    timeFunc = `f(t) = \\cos(${omegaCos}t)`;
+                    laplaceFunc = `F(s) = \\frac{s}{s^2 + ${omegaCos * omegaCos}}`;
+                    break;
+
+                case 'tn':
+                    const n = parseInt(document.getElementById('param-n').value);
+                    const factorial = (num) => num <= 1 ? 1 : num * factorial(num - 1);
+                    timeFunc = `f(t) = t^{${n}}`;
+                    laplaceFunc = `F(s) = \\frac{${factorial(n)}}{s^{${n + 1}}}`;
+                    break;
+
+                case 'exp-sin':
+                    const aExpSin = parseFloat(document.getElementById('param-a').value);
+                    const omegaExpSin = parseFloat(document.getElementById('param-omega').value);
+                    timeFunc = `f(t) = e^{-${aExpSin}t}\\sin(${omegaExpSin}t)`;
+                    laplaceFunc = `F(s) = \\frac{${omegaExpSin}}{(s + ${aExpSin})^2 + ${omegaExpSin * omegaExpSin}}`;
+                    break;
+
+                case 'exp-cos':
+                    const aExpCos = parseFloat(document.getElementById('param-a').value);
+                    const omegaExpCos = parseFloat(document.getElementById('param-omega').value);
+                    timeFunc = `f(t) = e^{-${aExpCos}t}\\cos(${omegaExpCos}t)`;
+                    laplaceFunc = `F(s) = \\frac{s + ${aExpCos}}{(s + ${aExpCos})^2 + ${omegaExpCos * omegaExpCos}}`;
+                    break;
+            }
+
+            const output = document.getElementById('laplace-output');
+            output.innerHTML = `
+                <div class="math-output">
+                    <strong>時間領域:</strong><br>
+                    <span id="time-func"></span>
+                </div>
+                <div class="math-output">
+                    <strong>ラプラス領域:</strong><br>
+                    <span id="laplace-func"></span>
+                </div>
+            `;
+
+            katex.render(timeFunc, document.getElementById('time-func'), { displayMode: true });
+            katex.render(laplaceFunc, document.getElementById('laplace-func'), { displayMode: true });
+        }
+
+        // Partial Fraction functions
+        function updatePartialProblem() {
+            const type = document.getElementById('partial-type').value;
+            let problem = '';
+
+            switch(type) {
+                case 'simple':
+                    problem = 'F(s) = \\frac{1}{(s+1)(s+2)}';
+                    break;
+                case 'simple3':
+                    problem = 'F(s) = \\frac{1}{(s+1)(s+2)(s+3)}';
+                    break;
+                case 'repeated':
+                    problem = 'F(s) = \\frac{1}{(s+1)^2}';
+                    break;
+                case 'repeated3':
+                    problem = 'F(s) = \\frac{1}{(s+1)^3}';
+                    break;
+                case 'complex':
+                    problem = 'F(s) = \\frac{1}{s^2 + 2s + 2}';
+                    break;
+                case 'mixed':
+                    problem = 'F(s) = \\frac{s+3}{(s+1)(s^2 + 2s + 2)}';
+                    break;
+            }
+
+            const output = document.getElementById('partial-problem');
+            output.innerHTML = '<span id="problem-display"></span>';
+            katex.render(problem, document.getElementById('problem-display'), { displayMode: true });
+
+            // Hide previous results
+            document.getElementById('partial-steps').style.display = 'none';
+            document.getElementById('partial-result').style.display = 'none';
+            document.getElementById('inverse-result').style.display = 'none';
+        }
+
+        function expandPartialFraction() {
+            const type = document.getElementById('partial-type').value;
+            const stepsContainer = document.getElementById('steps-content');
+            const resultContainer = document.getElementById('result-content');
+
+            let steps = '';
+            let result = '';
+
+            switch(type) {
+                case 'simple':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式を設定:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-simple"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>A₁を求める (s = -1 での留数):</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step2-simple"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <strong>A₂を求める (s = -2 での留数):</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step3-simple"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A_1}{s+1} + \\frac{A_2}{s+2}', document.getElementById('step1-simple'), { displayMode: true });
+                    katex.render('A_1 = \\lim_{s \\to -1} (s+1)F(s) = \\frac{1}{-1+2} = 1', document.getElementById('step2-simple'), { displayMode: true });
+                    katex.render('A_2 = \\lim_{s \\to -2} (s+2)F(s) = \\frac{1}{-2+1} = -1', document.getElementById('step3-simple'), { displayMode: true });
+                    result = 'F(s) = \\frac{1}{s+1} - \\frac{1}{s+2}';
+                    break;
+
+                case 'simple3':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式を設定:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-simple3"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>各係数を求める:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                A₁ = 1/2, A₂ = -1, A₃ = 1/2
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A_1}{s+1} + \\frac{A_2}{s+2} + \\frac{A_3}{s+3}', document.getElementById('step1-simple3'), { displayMode: true });
+                    result = 'F(s) = \\frac{1/2}{s+1} - \\frac{1}{s+2} + \\frac{1/2}{s+3}';
+                    break;
+
+                case 'repeated':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式を設定:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-rep"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>重根の公式を適用:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                A₂ = 1, A₁ = 0
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A_1}{s+1} + \\frac{A_2}{(s+1)^2}', document.getElementById('step1-rep'), { displayMode: true });
+                    result = 'F(s) = \\frac{1}{(s+1)^2}';
+                    break;
+
+                case 'repeated3':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>3次の重根の展開:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-rep3"></span>
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A_1}{s+1} + \\frac{A_2}{(s+1)^2} + \\frac{A_3}{(s+1)^3}', document.getElementById('step1-rep3'), { displayMode: true });
+                    result = 'F(s) = \\frac{1}{(s+1)^3}';
+                    break;
+
+                case 'complex':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>標準形に変形:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-comp"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>複素共役極: s = -1 ± j</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                α = -1, ω = 1
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{1}{(s+1)^2 + 1}', document.getElementById('step1-comp'), { displayMode: true });
+                    result = 'F(s) = \\frac{1}{(s+1)^2 + 1}';
+                    break;
+
+                case 'mixed':
+                    steps = `
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <strong>展開形式:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                <span id="step1-mix"></span>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <strong>係数を求める:</strong>
+                            <div class="math-output" style="margin-top: 10px;">
+                                A = 1, B = 0, C = 1
+                            </div>
+                        </div>
+                    `;
+                    stepsContainer.innerHTML = steps;
+                    katex.render('F(s) = \\frac{A}{s+1} + \\frac{Bs + C}{s^2 + 2s + 2}', document.getElementById('step1-mix'), { displayMode: true });
+                    result = 'F(s) = \\frac{1}{s+1} + \\frac{1}{(s+1)^2 + 1}';
+                    break;
+            }
+
+            document.getElementById('partial-steps').style.display = 'block';
+            document.getElementById('partial-result').style.display = 'block';
+            resultContainer.innerHTML = '<span id="result-display"></span>';
+            katex.render(result, document.getElementById('result-display'), { displayMode: true });
+        }
+
+        function showInverseLaplace() {
+            const type = document.getElementById('partial-type').value;
+            let inverse = '';
+
+            switch(type) {
+                case 'simple':
+                    inverse = 'f(t) = e^{-t} - e^{-2t}';
+                    break;
+                case 'simple3':
+                    inverse = 'f(t) = \\frac{1}{2}e^{-t} - e^{-2t} + \\frac{1}{2}e^{-3t}';
+                    break;
+                case 'repeated':
+                    inverse = 'f(t) = te^{-t}';
+                    break;
+                case 'repeated3':
+                    inverse = 'f(t) = \\frac{1}{2}t^2e^{-t}';
+                    break;
+                case 'complex':
+                    inverse = 'f(t) = e^{-t}\\sin(t)';
+                    break;
+                case 'mixed':
+                    inverse = 'f(t) = e^{-t} + e^{-t}\\sin(t)';
+                    break;
+            }
+
+            const container = document.getElementById('inverse-content');
+            document.getElementById('inverse-result').style.display = 'block';
+            container.innerHTML = '<span id="inverse-display"></span>';
+            katex.render(inverse, document.getElementById('inverse-display'), { displayMode: true });
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initComplexPlane();
+            updateParameters();
+            updatePartialProblem();
+
+            // Render all math
+            setTimeout(() => {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ]
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

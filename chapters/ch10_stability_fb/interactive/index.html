@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第10章 FBシステムの安定性 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+
+        .tab-button:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .output-box {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 100px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .highlight-negative {
+            background-color: #ffebee !important;
+            font-weight: 700;
+        }
+
+        .result {
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .result.stable {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .result.unstable {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .tab-button {
+                min-width: 150px;
+                font-size: 0.9rem;
+                padding: 12px 15px;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第10章 FBシステムの安定性</h1>
+            <p>Feedback System Stability - インタラクティブ学習ツール</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('routh')">ラウス配列計算 (Routh Array)</button>
+            <button class="tab-button" onclick="switchTab('nyquist')">ナイキスト線図 (Nyquist Plot)</button>
+            <button class="tab-button" onclick="switchTab('bode')">安定余裕解析 (Stability Margins)</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Tab 1: Routh Array Calculator -->
+            <div id="routh-tab" class="tab-pane active">
+                <div class="info-box">
+                    <h3>📌 使い方 (How to Use)</h3>
+                    <p>特性方程式の係数を入力してください。<br>
+                    例: $s^4 + 2s^3 + 3s^2 + 4s + 5 = 0$ の場合、「1, 2, 3, 4, 5」と入力します。<br>
+                    最高次から順番に、カンマ区切りで入力してください。</p>
+                </div>
+
+                <div class="card">
+                    <div class="input-group">
+                        <label>特性方程式の係数 (Characteristic Equation Coefficients):</label>
+                        <input type="text" id="routh-coeffs" placeholder="例: 1, 2, 3, 4, 5" value="1, 2, 3, 4, 5">
+                    </div>
+                    <button class="button" onclick="calculateRouth()">ラウス配列を計算 (Calculate Routh Array)</button>
+
+                    <div id="routh-output" class="output-box"></div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Nyquist Plotter -->
+            <div id="nyquist-tab" class="tab-pane">
+                <div class="info-box">
+                    <h3>📌 使い方 (How to Use)</h3>
+                    <p>開ループ伝達関数 $G(s)$ の分子と分母の係数を入力してください。<br>
+                    例: $G(s) = \frac{1}{s^2 + 2s + 1}$ の場合、分子は「1」、分母は「1, 2, 1」と入力します。<br>
+                    ナイキスト線図上の点 (-1, 0) の包囲回数で安定性を判定します。</p>
+                </div>
+
+                <div class="card">
+                    <div class="input-group">
+                        <label>分子係数 (Numerator Coefficients):</label>
+                        <input type="text" id="nyquist-num" placeholder="例: 1" value="10">
+                    </div>
+                    <div class="input-group">
+                        <label>分母係数 (Denominator Coefficients):</label>
+                        <input type="text" id="nyquist-den" placeholder="例: 1, 2, 1" value="1, 1, 1">
+                    </div>
+                    <button class="button" onclick="plotNyquist()">ナイキスト線図を描画 (Plot Nyquist Diagram)</button>
+
+                    <div class="chart-container">
+                        <canvas id="nyquist-chart"></canvas>
+                    </div>
+                    <div id="nyquist-result"></div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Bode Plot with Margins -->
+            <div id="bode-tab" class="tab-pane">
+                <div class="info-box">
+                    <h3>📌 使い方 (How to Use)</h3>
+                    <p>開ループ伝達関数 $G(s)$ の係数を入力してボード線図を描画します。<br>
+                    ゲイン余裕 (GM) と位相余裕 (PM) を自動計算します。<br>
+                    設計目標: $GM \geq 6$ dB, $PM \geq 45°$</p>
+                </div>
+
+                <div class="card">
+                    <div class="input-group">
+                        <label>分子係数 (Numerator Coefficients):</label>
+                        <input type="text" id="bode-num" placeholder="例: 1" value="10">
+                    </div>
+                    <div class="input-group">
+                        <label>分母係数 (Denominator Coefficients):</label>
+                        <input type="text" id="bode-den" placeholder="例: 1, 1, 1" value="1, 1, 1">
+                    </div>
+                    <button class="button" onclick="plotBode()">ボード線図を描画 (Plot Bode Diagram)</button>
+
+                    <div class="chart-container">
+                        <canvas id="bode-mag-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="bode-phase-chart"></canvas>
+                    </div>
+                    <div id="bode-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nyquistChart = null;
+        let bodeMagChart = null;
+        let bodePhaseChart = null;
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            const tabs = ['routh', 'nyquist', 'bode'];
+            tabs.forEach(tab => {
+                const tabPane = document.getElementById(tab + '-tab');
+                const tabButton = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+
+                if (tab === tabName) {
+                    tabPane.classList.add('active');
+                    tabButton.classList.add('active');
+                } else {
+                    tabPane.classList.remove('active');
+                    tabButton.classList.remove('active');
+                }
+            });
+        }
+
+        // Routh Array Calculator
+        function calculateRouth() {
+            const input = document.getElementById('routh-coeffs').value;
+            const coeffs = input.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+
+            if (coeffs.length < 2) {
+                document.getElementById('routh-output').innerHTML = '<p style="color: red;">少なくとも2つの係数が必要です。</p>';
+                return;
+            }
+
+            const n = coeffs.length - 1;
+            const routhArray = buildRouthArray(coeffs);
+
+            let html = '<h3>ラウス配列 (Routh Array):</h3>';
+            html += '<table>';
+            html += '<tr><th>行 (Row)</th>';
+            for (let j = 0; j < Math.ceil((n + 1) / 2); j++) {
+                html += `<th>列 ${j + 1}</th>`;
+            }
+            html += '</tr>';
+
+            let signChanges = 0;
+            let prevSign = null;
+
+            for (let i = 0; i < routhArray.length; i++) {
+                const firstCol = routhArray[i][0];
+                const currentSign = firstCol >= 0 ? '+' : '-';
+
+                if (prevSign !== null && prevSign !== currentSign) {
+                    signChanges++;
+                }
+                prevSign = currentSign;
+
+                html += `<tr${firstCol < 0 ? ' class="highlight-negative"' : ''}>`;
+                html += `<td>s^${n - i}</td>`;
+                for (let j = 0; j < routhArray[i].length; j++) {
+                    html += `<td>${routhArray[i][j].toFixed(4)}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+
+            html += `<div class="result ${signChanges === 0 ? 'stable' : 'unstable'}">`;
+            html += `<p>符号変化の回数: ${signChanges}</p>`;
+            if (signChanges === 0) {
+                html += '<p>✓ システムは安定です (System is stable)</p>';
+            } else {
+                html += `<p>✗ システムは不安定です。右半平面に ${signChanges} 個の極があります。</p>`;
+                html += `<p>(System is unstable with ${signChanges} poles in the right half-plane)</p>`;
+            }
+            html += '</div>';
+
+            document.getElementById('routh-output').innerHTML = html;
+        }
+
+        function buildRouthArray(coeffs) {
+            const n = coeffs.length - 1;
+            const array = [];
+
+            const row1 = [];
+            for (let i = 0; i < coeffs.length; i += 2) {
+                row1.push(coeffs[i]);
+            }
+            array.push(row1);
+
+            const row2 = [];
+            for (let i = 1; i < coeffs.length; i += 2) {
+                row2.push(coeffs[i]);
+            }
+            array.push(row2);
+
+            for (let i = 2; i <= n; i++) {
+                const newRow = [];
+                const prevRow = array[i - 1];
+                const prevPrevRow = array[i - 2];
+
+                for (let j = 0; j < prevPrevRow.length - 1; j++) {
+                    const a = prevRow[0] || 0;
+                    const b = prevPrevRow[0] || 0;
+                    const c = prevRow[j + 1] || 0;
+                    const d = prevPrevRow[j + 1] || 0;
+
+                    if (Math.abs(a) < 1e-10) {
+                        newRow.push(0);
+                    } else {
+                        const val = (a * d - b * c) / a;
+                        newRow.push(val);
+                    }
+                }
+
+                if (newRow.length > 0) {
+                    array.push(newRow);
+                }
+            }
+
+            return array;
+        }
+
+        // Nyquist Plotter
+        function plotNyquist() {
+            const numStr = document.getElementById('nyquist-num').value;
+            const denStr = document.getElementById('nyquist-den').value;
+
+            const numCoeffs = numStr.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            const denCoeffs = denStr.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+
+            if (numCoeffs.length === 0 || denCoeffs.length === 0) {
+                alert('分子と分母の係数を入力してください。');
+                return;
+            }
+
+            const omegaValues = [];
+            const dataPoints = [];
+
+            for (let i = -2; i <= 2.5; i += 0.05) {
+                const omega = Math.pow(10, i);
+                omegaValues.push(omega);
+
+                const gVal = evaluateTransferFunction(omega, numCoeffs, denCoeffs);
+                dataPoints.push({ x: gVal.real, y: gVal.imag });
+            }
+
+            const ctx = document.getElementById('nyquist-chart').getContext('2d');
+
+            if (nyquistChart) {
+                nyquistChart.destroy();
+            }
+
+            nyquistChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'G(jω)',
+                        data: dataPoints,
+                        showLine: true,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }, {
+                        label: '(-1, 0)',
+                        data: [{ x: -1, y: 0 }],
+                        showLine: false,
+                        borderColor: '#f44336',
+                        backgroundColor: '#f44336',
+                        pointRadius: 8,
+                        pointStyle: 'crossRot'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ナイキスト線図 (Nyquist Diagram)',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Real Part (実部)'
+                            },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Imaginary Part (虚部)'
+                            },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('nyquist-result').innerHTML =
+                '<div class="result stable"><p>ナイキスト線図が描画されました。点 (-1, 0) の包囲回数で安定性を判定してください。</p></div>';
+        }
+
+        // Bode Plot
+        function plotBode() {
+            const numStr = document.getElementById('bode-num').value;
+            const denStr = document.getElementById('bode-den').value;
+
+            const numCoeffs = numStr.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            const denCoeffs = denStr.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+
+            if (numCoeffs.length === 0 || denCoeffs.length === 0) {
+                alert('分子と分母の係数を入力してください。');
+                return;
+            }
+
+            const omegaValues = [];
+            const magDB = [];
+            const phaseDeg = [];
+
+            for (let i = -2; i <= 2; i += 0.02) {
+                const omega = Math.pow(10, i);
+                omegaValues.push(omega);
+
+                const gVal = evaluateTransferFunction(omega, numCoeffs, denCoeffs);
+                const mag = Math.sqrt(gVal.real * gVal.real + gVal.imag * gVal.imag);
+                const phase = Math.atan2(gVal.imag, gVal.real) * 180 / Math.PI;
+
+                magDB.push(20 * Math.log10(mag));
+                phaseDeg.push(phase);
+            }
+
+            const ctxMag = document.getElementById('bode-mag-chart').getContext('2d');
+            const ctxPhase = document.getElementById('bode-phase-chart').getContext('2d');
+
+            if (bodeMagChart) bodeMagChart.destroy();
+            if (bodePhaseChart) bodePhaseChart.destroy();
+
+            bodeMagChart = new Chart(ctxMag, {
+                type: 'line',
+                data: {
+                    labels: omegaValues,
+                    datasets: [{
+                        label: 'Magnitude (dB)',
+                        data: magDB,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ゲイン線図 (Magnitude Plot)',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: { display: true, text: 'Frequency ω (rad/s)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Magnitude (dB)' },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            bodePhaseChart = new Chart(ctxPhase, {
+                type: 'line',
+                data: {
+                    labels: omegaValues,
+                    datasets: [{
+                        label: 'Phase (deg)',
+                        data: phaseDeg,
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '位相線図 (Phase Plot)',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: { display: true, text: 'Frequency ω (rad/s)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Phase (degrees)' },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            const margins = calculateMargins(omegaValues, magDB, phaseDeg);
+
+            let resultHTML = '<div class="result stable">';
+            resultHTML += '<h3>安定余裕 (Stability Margins):</h3>';
+            resultHTML += `<p><strong>ゲイン余裕 (Gain Margin):</strong> ${margins.gm.toFixed(2)} dB</p>`;
+            resultHTML += `<p><strong>位相余裕 (Phase Margin):</strong> ${margins.pm.toFixed(2)}°</p>`;
+
+            if (margins.gm >= 6 && margins.pm >= 45) {
+                resultHTML += '<p>✓ 十分な安定余裕があります (Sufficient stability margins)</p>';
+            } else {
+                resultHTML += '<p>⚠ 安定余裕が不足しています (Insufficient stability margins)</p>';
+            }
+            resultHTML += '</div>';
+
+            document.getElementById('bode-result').innerHTML = resultHTML;
+        }
+
+        function evaluateTransferFunction(omega, numCoeffs, denCoeffs) {
+            const jw = { real: 0, imag: omega };
+
+            const num = evaluatePolynomial(jw, numCoeffs);
+            const den = evaluatePolynomial(jw, denCoeffs);
+
+            const denMagSq = den.real * den.real + den.imag * den.imag;
+
+            if (denMagSq < 1e-10) {
+                return { real: 0, imag: 0 };
+            }
+
+            return {
+                real: (num.real * den.real + num.imag * den.imag) / denMagSq,
+                imag: (num.imag * den.real - num.real * den.imag) / denMagSq
+            };
+        }
+
+        function evaluatePolynomial(x, coeffs) {
+            let result = { real: 0, imag: 0 };
+            const n = coeffs.length - 1;
+
+            for (let i = 0; i <= n; i++) {
+                const power = n - i;
+                const term = complexPower(x, power);
+                result.real += coeffs[i] * term.real;
+                result.imag += coeffs[i] * term.imag;
+            }
+
+            return result;
+        }
+
+        function complexPower(x, n) {
+            if (n === 0) return { real: 1, imag: 0 };
+            if (n === 1) return x;
+
+            const mag = Math.sqrt(x.real * x.real + x.imag * x.imag);
+            const angle = Math.atan2(x.imag, x.real);
+
+            const newMag = Math.pow(mag, n);
+            const newAngle = angle * n;
+
+            return {
+                real: newMag * Math.cos(newAngle),
+                imag: newMag * Math.sin(newAngle)
+            };
+        }
+
+        function calculateMargins(omegaValues, magDB, phaseDeg) {
+            let phaseMargin = 0;
+            let gainMargin = 0;
+
+            for (let i = 1; i < magDB.length; i++) {
+                if (magDB[i - 1] > 0 && magDB[i] <= 0) {
+                    const ratio = -magDB[i - 1] / (magDB[i] - magDB[i - 1]);
+                    const phase = phaseDeg[i - 1] + ratio * (phaseDeg[i] - phaseDeg[i - 1]);
+                    phaseMargin = 180 + phase;
+                }
+
+                if (phaseDeg[i - 1] > -180 && phaseDeg[i] <= -180) {
+                    const ratio = (-180 - phaseDeg[i - 1]) / (phaseDeg[i] - phaseDeg[i - 1]);
+                    const mag = magDB[i - 1] + ratio * (magDB[i] - magDB[i - 1]);
+                    gainMargin = -mag;
+                }
+            }
+
+            return { pm: phaseMargin, gm: gainMargin };
+        }
+
+        window.addEventListener('load', function() {
+            calculateRouth();
+
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        });
+    </script>
+</body>
+</html>

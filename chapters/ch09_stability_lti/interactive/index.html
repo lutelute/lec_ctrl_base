@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第9章 LTIシステムの安定性 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 18px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin: 20px 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button.btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button.btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button.btn:active {
+            transform: translateY(0);
+        }
+
+        button.btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .chart-container canvas {
+            cursor: crosshair;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-stable {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status-unstable {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status-marginal {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeeba;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+        }
+
+        .pole-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .pole-item {
+            background: white;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pole-item button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .pole-item button:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .tab-button {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第9章 LTIシステムの安定性</h1>
+            <p>Interactive Learning Tool for Stability Analysis</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('tab1', event)">極配置と安定性</button>
+            <button class="tab-button" onclick="showTab('tab2', event)">ラウス表計算機</button>
+            <button class="tab-button" onclick="showTab('tab3', event)">時間応答シミュレーション</button>
+        </div>
+
+        <!-- Tab 1: 極配置と安定性 -->
+        <div id="tab1" class="tab-content active">
+            <div class="section">
+                <h2>極配置と安定性 (Pole Placement and Stability)</h2>
+                <div class="info-box">
+                    <strong>使い方:</strong> 極を手動で入力するか、<strong>複素平面上をクリック</strong>して極を配置してください。
+                    虚部が0でない極は自動的に共役極も追加されます。<br>
+                    <strong>安定性:</strong> 全ての極が左半平面（実部 &lt; 0）にあれば安定、右半平面（実部 &gt; 0）に極があれば不安定です。
+                </div>
+
+                <div class="grid-2col">
+                    <div>
+                        <div class="control-panel">
+                            <h3>極の入力</h3>
+                            <div class="control-group">
+                                <label>実部 (Real Part):</label>
+                                <input type="number" id="poleReal" step="0.1" value="-1" placeholder="例: -1">
+                            </div>
+                            <div class="control-group">
+                                <label>虚部 (Imaginary Part):</label>
+                                <input type="number" id="poleImag" step="0.1" value="2" placeholder="例: 2">
+                            </div>
+                            <button class="btn" onclick="addPole()">極を追加</button>
+                            <button class="btn btn-secondary" onclick="clearPoles()">クリア</button>
+                        </div>
+
+                        <div class="pole-list" id="poleList">
+                            <strong>配置された極:</strong>
+                            <div id="poleItems"></div>
+                        </div>
+
+                        <div id="stabilityStatus" class="status-box status-stable">
+                            安定 (Stable)
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3>複素平面 (Complex Plane)</h3>
+                        <div class="chart-container">
+                            <canvas id="poleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>ステップ応答 (Step Response)</h3>
+                    <div class="chart-container">
+                        <canvas id="stepResponseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: ラウス表計算機 -->
+        <div id="tab2" class="tab-content">
+            <div class="section">
+                <h2>ラウス表計算機 (Routh Table Calculator)</h2>
+                <div class="info-box">
+                    <strong>使い方:</strong> 特性多項式 \(a_n s^n + a_{n-1} s^{n-1} + \cdots + a_1 s + a_0 = 0\) の係数を入力してください。
+                    第1列の符号変化の回数が不安定極の数を表します。
+                </div>
+
+                <div class="control-panel">
+                    <h3>特性多項式の次数</h3>
+                    <div class="control-group">
+                        <label>次数 (Order):</label>
+                        <select id="polyOrder" onchange="updateCoefficients()">
+                            <option value="2">2次</option>
+                            <option value="3" selected>3次</option>
+                            <option value="4">4次</option>
+                            <option value="5">5次</option>
+                        </select>
+                    </div>
+
+                    <h3>係数入力 (最高次から順に)</h3>
+                    <div id="coeffInputs"></div>
+
+                    <button class="btn" onclick="calculateRouth()">ラウス表を計算</button>
+                </div>
+
+                <div id="routhTableContainer"></div>
+
+                <div id="routhStatus"></div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 時間応答シミュレーション -->
+        <div id="tab3" class="tab-content">
+            <div class="section">
+                <h2>時間応答シミュレーション (Time Response Simulation)</h2>
+                <div class="info-box">
+                    <strong>使い方:</strong> システムの極を設定し、インパルス応答またはステップ応答を観察してください。
+                    極の位置を変更すると、応答がどのように変化するかを確認できます。
+                </div>
+
+                <div class="grid-2col">
+                    <div class="control-panel">
+                        <h3>システムタイプ</h3>
+                        <div class="control-group">
+                            <label>次数:</label>
+                            <select id="systemOrder" onchange="updateSystemInputs()">
+                                <option value="1">1次系</option>
+                                <option value="2" selected>2次系</option>
+                            </select>
+                        </div>
+
+                        <div id="systemInputs"></div>
+
+                        <h3>応答タイプ</h3>
+                        <div class="control-group">
+                            <label>入力:</label>
+                            <select id="responseType">
+                                <option value="step">ステップ応答</option>
+                                <option value="impulse">インパルス応答</option>
+                            </select>
+                        </div>
+
+                        <button class="btn" onclick="simulateResponse()">シミュレーション実行</button>
+                    </div>
+
+                    <div>
+                        <h3>極の位置</h3>
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="systemPoleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>時間応答</h3>
+                    <div class="chart-container">
+                        <canvas id="timeResponseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let poles = [];
+        let poleChart = null;
+        let stepResponseChart = null;
+        let systemPoleChart = null;
+        let timeResponseChart = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePoleChart();
+            initializeStepResponseChart();
+            updateCoefficients();
+            updateSystemInputs();
+
+            // Add default poles for demonstration
+            poles = [
+                { x: -1, y: 2 },
+                { x: -1, y: -2 }
+            ];
+            updatePoleDisplay();
+            updateStabilityStatus();
+            updateStepResponse();
+
+            // Initialize Tab 3 with default values
+            simulateResponse();
+
+            // Render math equations
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false}
+                    ]
+                });
+            }
+        });
+
+        // Tab switching
+        function showTab(tabId, event) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Tab 1: Pole Placement Functions
+        const stabilityRegionPlugin = {
+            id: 'stabilityRegion',
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                const chartArea = chart.chartArea;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+
+                // Draw stable region (left half-plane)
+                ctx.save();
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.1)';
+                const leftX = chartArea.left;
+                const centerX = xAxis.getPixelForValue(0);
+                ctx.fillRect(leftX, chartArea.top, centerX - leftX, chartArea.bottom - chartArea.top);
+
+                // Draw unstable region (right half-plane)
+                ctx.fillStyle = 'rgba(244, 67, 54, 0.1)';
+                const rightX = chartArea.right;
+                ctx.fillRect(centerX, chartArea.top, rightX - centerX, chartArea.bottom - chartArea.top);
+
+                ctx.restore();
+            }
+        };
+
+        function initializePoleChart() {
+            const ctx = document.getElementById('poleChart').getContext('2d');
+            poleChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '極 (Poles)',
+                        data: [],
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        pointStyle: 'cross',
+                        rotation: 45
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '実部 (Real)' },
+                            min: -5,
+                            max: 5,
+                            grid: { color: (context) => context.tick.value === 0 ? '#000' : '#ddd' }
+                        },
+                        y: {
+                            title: { display: true, text: '虚部 (Imaginary)' },
+                            min: -5,
+                            max: 5,
+                            grid: { color: (context) => context.tick.value === 0 ? '#000' : '#ddd' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return `(${context.parsed.x.toFixed(2)}, ${context.parsed.y.toFixed(2)}i)`;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (event, activeElements, chart) => {
+                        const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
+                        const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
+                        const dataY = chart.scales.y.getValueForPixel(canvasPosition.y);
+
+                        if (dataX !== undefined && dataY !== undefined) {
+                            addPoleFromChart(dataX, dataY);
+                        }
+                    }
+                },
+                plugins: [stabilityRegionPlugin]
+            });
+        }
+
+        function initializeStepResponseChart() {
+            const ctx = document.getElementById('stepResponseChart').getContext('2d');
+            stepResponseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'ステップ応答',
+                        data: [],
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: '時間 (sec)' }
+                        },
+                        y: {
+                            title: { display: true, text: '出力' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true }
+                    }
+                }
+            });
+        }
+
+        function addPole() {
+            const real = parseFloat(document.getElementById('poleReal').value);
+            const imag = parseFloat(document.getElementById('poleImag').value);
+
+            if (isNaN(real) || isNaN(imag)) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+
+            poles.push({ x: real, y: imag });
+
+            // Add conjugate if imaginary part is non-zero
+            if (imag !== 0) {
+                poles.push({ x: real, y: -imag });
+            }
+
+            updatePoleDisplay();
+            updateStabilityStatus();
+            updateStepResponse();
+        }
+
+        function addPoleFromChart(real, imag) {
+            poles.push({ x: real, y: imag });
+
+            // Add conjugate if imaginary part is non-zero and significant
+            if (Math.abs(imag) > 0.1) {
+                poles.push({ x: real, y: -imag });
+            }
+
+            updatePoleDisplay();
+            updateStabilityStatus();
+            updateStepResponse();
+        }
+
+        function clearPoles() {
+            poles = [];
+            updatePoleDisplay();
+            updateStabilityStatus();
+            updateStepResponse();
+        }
+
+        function removePole(index) {
+            poles.splice(index, 1);
+            updatePoleDisplay();
+            updateStabilityStatus();
+            updateStepResponse();
+        }
+
+        function updatePoleDisplay() {
+            // Update chart
+            poleChart.data.datasets[0].data = poles;
+            poleChart.update();
+
+            // Update list
+            const poleItems = document.getElementById('poleItems');
+            poleItems.innerHTML = '';
+
+            if (poles.length === 0) {
+                poleItems.innerHTML = '<div style="color: #999;">極が配置されていません</div>';
+                return;
+            }
+
+            poles.forEach((pole, index) => {
+                const item = document.createElement('div');
+                item.className = 'pole-item';
+                const imagSign = pole.y >= 0 ? '+' : '';
+                item.innerHTML = `
+                    <span>${pole.x.toFixed(2)} ${imagSign} ${pole.y.toFixed(2)}i</span>
+                    <button onclick="removePole(${index})">削除</button>
+                `;
+                poleItems.appendChild(item);
+            });
+        }
+
+        function updateStabilityStatus() {
+            const statusBox = document.getElementById('stabilityStatus');
+
+            if (poles.length === 0) {
+                statusBox.className = 'status-box status-stable';
+                statusBox.textContent = '極を配置してください';
+                return;
+            }
+
+            let allStable = true;
+            let onImaginaryAxis = false;
+
+            for (const pole of poles) {
+                if (pole.x > 0.001) {
+                    allStable = false;
+                    break;
+                } else if (Math.abs(pole.x) < 0.001) {
+                    onImaginaryAxis = true;
+                }
+            }
+
+            if (!allStable) {
+                statusBox.className = 'status-box status-unstable';
+                statusBox.textContent = '不安定 (Unstable) - 右半平面に極があります';
+            } else if (onImaginaryAxis) {
+                statusBox.className = 'status-box status-marginal';
+                statusBox.textContent = '臨界安定 (Marginally Stable) - 虚軸上に極があります';
+            } else {
+                statusBox.className = 'status-box status-stable';
+                statusBox.textContent = '安定 (Stable) - 全ての極が左半平面にあります';
+            }
+        }
+
+        function updateStepResponse() {
+            if (poles.length === 0) {
+                stepResponseChart.data.datasets[0].data = [];
+                stepResponseChart.update();
+                return;
+            }
+
+            // Group poles by their values (to handle conjugate pairs)
+            const uniquePoles = [];
+            const processed = new Set();
+
+            for (const pole of poles) {
+                const key = `${pole.x.toFixed(6)},${pole.y.toFixed(6)}`;
+                if (processed.has(key)) continue;
+                processed.add(key);
+
+                const conjugateKey = `${pole.x.toFixed(6)},${(-pole.y).toFixed(6)}`;
+                const hasConjugate = poles.some(p =>
+                    `${p.x.toFixed(6)},${p.y.toFixed(6)}` === conjugateKey
+                );
+
+                if (Math.abs(pole.y) > 0.01 && hasConjugate && pole.y > 0) {
+                    // Complex conjugate pair
+                    uniquePoles.push({ x: pole.x, y: pole.y, type: 'complex' });
+                    processed.add(conjugateKey);
+                } else if (Math.abs(pole.y) < 0.01) {
+                    // Real pole
+                    uniquePoles.push({ x: pole.x, y: 0, type: 'real' });
+                }
+            }
+
+            const timePoints = 500;
+            const tMax = 15;
+            const dt = tMax / timePoints;
+            const data = [];
+
+            for (let i = 0; i <= timePoints; i++) {
+                const t = i * dt;
+                let y = 1; // Start with steady-state value
+
+                // Calculate transient response from each pole/pole pair
+                for (const pole of uniquePoles) {
+                    if (pole.type === 'real') {
+                        const p = pole.x;
+                        // For real pole: residue * (1 - exp(p*t))
+                        y -= (1 / Math.abs(p)) * Math.exp(p * t);
+                    } else {
+                        const sigma = pole.x;
+                        const wd = pole.y;
+                        const wn = Math.sqrt(sigma * sigma + wd * wd);
+
+                        // For complex pair: damped oscillation
+                        const envelope = Math.exp(sigma * t);
+                        const phase = Math.atan2(wd, -sigma);
+                        y -= envelope * Math.cos(wd * t - phase) / Math.cos(phase);
+                    }
+                }
+
+                data.push({ x: t, y: y });
+            }
+
+            stepResponseChart.data.datasets[0].data = data;
+            stepResponseChart.update();
+        }
+
+        // Tab 2: Routh Table Functions
+        function updateCoefficients() {
+            const order = parseInt(document.getElementById('polyOrder').value);
+            const container = document.getElementById('coeffInputs');
+            container.innerHTML = '';
+
+            // Default values: s^3 + 2s^2 + 3s + 4 (stable system example)
+            const defaultValues = {
+                3: [1, 2, 3, 4],  // s^3 + 2s^2 + 3s + 4
+                2: [1, 2, 1],      // s^2 + 2s + 1
+                4: [1, 2, 3, 4, 5],  // s^4 + 2s^3 + 3s^2 + 4s + 5
+                5: [1, 2, 3, 4, 5, 6]  // s^5 + 2s^4 + 3s^3 + 4s^2 + 5s + 6
+            };
+
+            const defaults = defaultValues[order] || [];
+
+            for (let i = order; i >= 0; i--) {
+                const group = document.createElement('div');
+                group.className = 'control-group';
+                const defaultVal = defaults[i] !== undefined ? defaults[i] : (i === order ? 1 : 0);
+                group.innerHTML = `
+                    <label>a<sub>${i}</sub> (s<sup>${i}</sup>の係数):</label>
+                    <input type="number" id="coeff${i}" step="0.1" value="${defaultVal}">
+                `;
+                container.appendChild(group);
+            }
+        }
+
+        function calculateRouth() {
+            const order = parseInt(document.getElementById('polyOrder').value);
+            const coeffs = [];
+
+            for (let i = order; i >= 0; i--) {
+                const value = parseFloat(document.getElementById(`coeff${i}`).value);
+                if (isNaN(value)) {
+                    alert('全ての係数を入力してください');
+                    return;
+                }
+                coeffs.unshift(value);
+            }
+
+            const routhTable = buildRouthTable(coeffs);
+            displayRouthTable(routhTable, order);
+            analyzeRouthTable(routhTable);
+        }
+
+        function buildRouthTable(coeffs) {
+            const n = coeffs.length - 1;
+            const table = [];
+
+            // First row (even coefficients)
+            table[0] = [];
+            for (let i = 0; i < coeffs.length; i += 2) {
+                table[0].push(coeffs[coeffs.length - 1 - i]);
+            }
+
+            // Second row (odd coefficients)
+            table[1] = [];
+            for (let i = 1; i < coeffs.length; i += 2) {
+                table[1].push(coeffs[coeffs.length - 1 - i]);
+            }
+
+            // Pad with zeros
+            while (table[1].length < table[0].length) {
+                table[1].push(0);
+            }
+
+            // Compute remaining rows
+            for (let row = 2; row <= n; row++) {
+                table[row] = [];
+                const prevRow1 = table[row - 1];
+                const prevRow2 = table[row - 2];
+
+                const numCols = prevRow2.length - 1;
+                for (let col = 0; col < numCols; col++) {
+                    const a = prevRow1[0];
+                    const b = prevRow2[0];
+                    const c = prevRow1[col + 1] || 0;
+                    const d = prevRow2[col + 1] || 0;
+
+                    if (Math.abs(a) < 1e-10) {
+                        table[row].push(0);
+                    } else {
+                        table[row].push((a * d - b * c) / a);
+                    }
+                }
+
+                if (table[row].length === 0) break;
+            }
+
+            return table;
+        }
+
+        function displayRouthTable(table, order) {
+            const container = document.getElementById('routhTableContainer');
+            let html = '<h3>ラウス表 (Routh Table)</h3><table><thead><tr><th>行</th>';
+
+            const maxCols = Math.max(...table.map(row => row.length));
+            for (let i = 0; i < maxCols; i++) {
+                html += `<th>列${i + 1}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            const rowLabels = ['s^' + order];
+            for (let i = order - 1; i >= 0; i--) {
+                rowLabels.push('s^' + i);
+            }
+
+            table.forEach((row, index) => {
+                html += `<tr><td><strong>${rowLabels[index]}</strong></td>`;
+                row.forEach(val => {
+                    html += `<td>${val.toFixed(4)}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function analyzeRouthTable(table) {
+            const statusDiv = document.getElementById('routhStatus');
+
+            // Check first column for sign changes
+            const firstCol = table.map(row => row[0]);
+            let signChanges = 0;
+
+            for (let i = 1; i < firstCol.length; i++) {
+                if (firstCol[i] * firstCol[i - 1] < 0) {
+                    signChanges++;
+                }
+            }
+
+            let html = '';
+            if (signChanges === 0) {
+                html = '<div class="status-box status-stable">';
+                html += '<strong>安定 (Stable)</strong><br>';
+                html += '第1列に符号変化なし。全ての極が左半平面にあります。';
+                html += '</div>';
+            } else {
+                html = '<div class="status-box status-unstable">';
+                html += '<strong>不安定 (Unstable)</strong><br>';
+                html += `第1列に${signChanges}回の符号変化があります。<br>`;
+                html += `右半平面に${signChanges}個の極があります。`;
+                html += '</div>';
+            }
+
+            statusDiv.innerHTML = html;
+        }
+
+        // Tab 3: Time Response Simulation Functions
+        function updateSystemInputs() {
+            const order = parseInt(document.getElementById('systemOrder').value);
+            const container = document.getElementById('systemInputs');
+
+            if (order === 1) {
+                container.innerHTML = `
+                    <div class="control-group">
+                        <label>極 (Pole) σ:</label>
+                        <input type="number" id="pole1" step="0.1" value="-1">
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="control-group">
+                        <label>極の実部 σ:</label>
+                        <input type="number" id="poleReal2" step="0.1" value="-0.5">
+                    </div>
+                    <div class="control-group">
+                        <label>極の虚部 ±ωd:</label>
+                        <input type="number" id="poleImag2" step="0.1" value="2">
+                    </div>
+                `;
+            }
+        }
+
+        function simulateResponse() {
+            const order = parseInt(document.getElementById('systemOrder').value);
+            const responseType = document.getElementById('responseType').value;
+
+            let poles = [];
+
+            if (order === 1) {
+                const pole = parseFloat(document.getElementById('pole1').value);
+                if (isNaN(pole)) {
+                    alert('有効な極を入力してください');
+                    return;
+                }
+                poles = [{ x: pole, y: 0 }];
+            } else {
+                const real = parseFloat(document.getElementById('poleReal2').value);
+                const imag = parseFloat(document.getElementById('poleImag2').value);
+                if (isNaN(real) || isNaN(imag)) {
+                    alert('有効な極を入力してください');
+                    return;
+                }
+                poles = [
+                    { x: real, y: imag },
+                    { x: real, y: -imag }
+                ];
+            }
+
+            displaySystemPoles(poles);
+            displayTimeResponse(poles, responseType, order);
+        }
+
+        function displaySystemPoles(poles) {
+            if (systemPoleChart) {
+                systemPoleChart.destroy();
+            }
+
+            const ctx = document.getElementById('systemPoleChart').getContext('2d');
+            systemPoleChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '極',
+                        data: poles,
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '実部' },
+                            min: -5,
+                            max: 5,
+                            grid: { color: (context) => context.tick.value === 0 ? '#000' : '#ddd' }
+                        },
+                        y: {
+                            title: { display: true, text: '虚部' },
+                            min: -5,
+                            max: 5,
+                            grid: { color: (context) => context.tick.value === 0 ? '#000' : '#ddd' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayTimeResponse(poles, responseType, order) {
+            if (timeResponseChart) {
+                timeResponseChart.destroy();
+            }
+
+            const timePoints = 500;
+            const tMax = 10;
+            const dt = tMax / timePoints;
+            const data = [];
+
+            for (let i = 0; i <= timePoints; i++) {
+                const t = i * dt;
+                let y = 0;
+
+                if (order === 1) {
+                    const sigma = poles[0].x;
+                    if (responseType === 'step') {
+                        y = 1 - Math.exp(sigma * t);
+                    } else {
+                        y = -sigma * Math.exp(sigma * t);
+                    }
+                } else {
+                    const sigma = poles[0].x;
+                    const wd = Math.abs(poles[0].y);
+                    const wn = Math.sqrt(sigma * sigma + wd * wd);
+                    const zeta = -sigma / wn;
+
+                    if (responseType === 'step') {
+                        if (Math.abs(wd) < 0.001) {
+                            y = 1 - Math.exp(sigma * t) * (1 + sigma * t);
+                        } else {
+                            const phi = Math.atan2(wd, -sigma);
+                            y = 1 - Math.exp(sigma * t) * Math.cos(wd * t - phi) / Math.cos(phi);
+                        }
+                    } else {
+                        if (Math.abs(wd) < 0.001) {
+                            y = wn * wn * t * Math.exp(sigma * t);
+                        } else {
+                            y = wn * wn / wd * Math.exp(sigma * t) * Math.sin(wd * t);
+                        }
+                    }
+                }
+
+                data.push({ x: t, y: y });
+            }
+
+            const ctx = document.getElementById('timeResponseChart').getContext('2d');
+            timeResponseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: responseType === 'step' ? 'ステップ応答' : 'インパルス応答',
+                        data: data,
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: '時間 (sec)' }
+                        },
+                        y: {
+                            title: { display: true, text: '出力' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

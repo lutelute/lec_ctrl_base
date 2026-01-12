@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第6章 状態空間表現 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN - CSS first, then JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Plotly.js CDN - specific version, NOT plotly-latest.min.js -->
+    <script src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script>
+
+    <!-- Math.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@15.0.0/lib/browser/math.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 18px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            background: white;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-row > div {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .matrix-input {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .matrix-row input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .plot-container {
+            margin-top: 25px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .math-display {
+            font-size: 1.1em;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #555;
+        }
+
+        table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                min-width: 100%;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第6章 状態空間表現</h1>
+            <p>State-Space Representation - インタラクティブ学習ツール</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">状態方程式入力</button>
+            <button class="tab" onclick="switchTab(1)">状態遷移行列計算</button>
+            <button class="tab" onclick="switchTab(2)">時間応答シミュレーション</button>
+            <button class="tab" onclick="switchTab(3)">状態軌道・位相面</button>
+            <button class="tab" onclick="switchTab(4)">固有値解析</button>
+        </div>
+
+        <!-- Tab 1: 状態方程式入力 (State Equation Input) -->
+        <div class="tab-content active">
+            <div class="section">
+                <h2>状態方程式入力 (State Equation Input)</h2>
+                <div class="alert alert-info">
+                    状態空間表現のシステム行列 A, B, C, D を入力します。<br>
+                    状態方程式: <strong>ẋ(t) = Ax(t) + Bu(t)</strong><br>
+                    出力方程式: <strong>y(t) = Cx(t) + Du(t)</strong>
+                </div>
+
+                <h3>システムサイズの設定</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>状態数 (n):</label>
+                        <input type="number" id="state-dim" value="2" min="1" max="5" onchange="updateMatrixSizes()">
+                    </div>
+                    <div class="input-group">
+                        <label>入力数 (m):</label>
+                        <input type="number" id="input-dim" value="1" min="1" max="3" onchange="updateMatrixSizes()">
+                    </div>
+                    <div class="input-group">
+                        <label>出力数 (p):</label>
+                        <input type="number" id="output-dim" value="1" min="1" max="3" onchange="updateMatrixSizes()">
+                    </div>
+                </div>
+
+                <div id="matrix-warning" class="alert alert-warning" style="display: none;">
+                    ⚠️ 5×5以上の大きな行列は計算が重くなる可能性があります。教育目的として3×3以下を推奨します。
+                </div>
+
+                <h3>A行列 (n × n) - システム行列</h3>
+                <div id="matrix-a-container"></div>
+
+                <h3>B行列 (n × m) - 入力行列</h3>
+                <div id="matrix-b-container"></div>
+
+                <h3>C行列 (p × n) - 出力行列</h3>
+                <div id="matrix-c-container"></div>
+
+                <h3>D行列 (p × m) - 直達項</h3>
+                <div id="matrix-d-container"></div>
+
+                <button onclick="displayStateEquations()">状態方程式を表示</button>
+
+                <div id="equation-display" class="result" style="display: none;">
+                    <h3>状態空間表現</h3>
+                    <div id="equations-math" class="math-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 状態遷移行列計算 (State Transition Matrix) -->
+        <div class="tab-content">
+            <div class="section">
+                <h2>状態遷移行列計算 (State Transition Matrix)</h2>
+                <div class="alert alert-info">
+                    状態遷移行列 <strong>Φ(t) = e<sup>At</sup></strong> を計算します。<br>
+                    この行列は零入力応答 <strong>x<sub>zi</sub>(t) = e<sup>At</sup>x(0)</strong> の計算に使用されます。
+                </div>
+
+                <h3>時刻 t の設定</h3>
+                <div class="slider-container">
+                    <label>時刻 t (秒) - スライダー:</label>
+                    <input type="range" id="time-slider" min="0" max="10" step="0.1" value="0" oninput="updateTimeFromSlider()">
+                    <span class="slider-value" id="time-value">0.0</span> 秒
+                </div>
+
+                <div class="input-group">
+                    <label>時刻 t (秒) - 数値入力:</label>
+                    <input type="number" id="time-input" min="0" max="20" step="0.1" value="0" oninput="updateTimeFromInput()">
+                </div>
+
+                <button onclick="calculateStateTransitionMatrix()">Φ(t) を計算</button>
+
+                <div id="phi-result" class="result" style="display: none;">
+                    <h3>状態遷移行列 Φ(t)</h3>
+                    <div id="phi-matrix" class="math-display"></div>
+                </div>
+
+                <div id="phi-properties" class="result" style="display: none;">
+                    <h3>状態遷移行列の性質</h3>
+                    <ul style="line-height: 1.8; margin-left: 20px;">
+                        <li>Φ(0) = I (単位行列)</li>
+                        <li>Φ(t₁ + t₂) = Φ(t₁)Φ(t₂) (半群性)</li>
+                        <li>Φ⁻¹(t) = Φ(-t) (可逆性)</li>
+                        <li>dΦ(t)/dt = AΦ(t) (微分方程式を満たす)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 時間応答シミュレーション (Time Response Simulation) -->
+        <div class="tab-content">
+            <div class="section">
+                <h2>時間応答シミュレーション (Time Response Simulation)</h2>
+                <div class="alert alert-info">
+                    状態 x(t) と出力 y(t) の時間応答を計算・表示します。<br>
+                    完全応答: <strong>x(t) = e<sup>At</sup>x(0) + ∫₀ᵗ e<sup>A(t-τ)</sup>Bu(τ)dτ</strong>
+                </div>
+
+                <h3>初期状態 x₀ の設定</h3>
+                <div id="initial-state-container"></div>
+
+                <h3>入力信号 u(t) の選択</h3>
+                <div class="input-group">
+                    <label>入力タイプ:</label>
+                    <select id="input-type">
+                        <option value="zero">ゼロ入力 (u = 0)</option>
+                        <option value="step">ステップ入力 (u = 1)</option>
+                        <option value="impulse">インパルス入力</option>
+                    </select>
+                </div>
+
+                <h3>シミュレーション設定</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>シミュレーション時間 (秒):</label>
+                        <input type="number" id="sim-time" value="10" min="0.1" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>サンプリング間隔 (秒):</label>
+                        <input type="number" id="sample-interval" value="0.01" min="0.001" max="0.1" step="0.001">
+                    </div>
+                </div>
+
+                <button onclick="runSimulation()">シミュレーション実行</button>
+
+                <div id="simulation-warning" style="display: none;"></div>
+
+                <div class="plot-container">
+                    <div id="state-plot"></div>
+                </div>
+
+                <div class="plot-container">
+                    <div id="output-plot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: 状態軌道・位相面 (State Trajectory & Phase Plane) -->
+        <div class="tab-content">
+            <div class="section">
+                <h2>状態軌道・位相面 (State Trajectory & Phase Plane)</h2>
+                <div class="alert alert-info">
+                    2次元状態空間 (x₁-x₂平面) での状態軌道を可視化します。<br>
+                    このツールは <strong>2×2システム (n=2)</strong> でのみ動作します。
+                </div>
+
+                <div id="trajectory-dimension-check" class="alert alert-warning" style="display: none;">
+                    ⚠️ このツールは2×2システムでのみ動作します。タブ1で状態数を2に設定してください。
+                </div>
+
+                <h3>初期状態の設定</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>x₁(0):</label>
+                        <input type="number" id="x1-init" value="1" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>x₂(0):</label>
+                        <input type="number" id="x2-init" value="1" step="0.1">
+                    </div>
+                </div>
+
+                <h3>複数の軌道を表示</h3>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="multiple-trajectories">
+                        グリッド状の初期条件で複数軌道を表示
+                    </label>
+                </div>
+
+                <button onclick="plotTrajectory()">位相面を描画</button>
+
+                <div class="plot-container">
+                    <div id="trajectory-plot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: 固有値解析 (Eigenvalue Analysis) -->
+        <div class="tab-content">
+            <div class="section">
+                <h2>固有値解析 (Eigenvalue Analysis)</h2>
+                <div class="alert alert-info">
+                    A行列の固有値を計算し、システムの安定性を解析します。<br>
+                    安定性条件: <strong>すべての固有値の実部が負 (Re(λᵢ) &lt; 0)</strong>
+                </div>
+
+                <button onclick="analyzeEigenvalues()">固有値解析を実行</button>
+
+                <div id="eigenvalue-results" class="result" style="display: none;">
+                    <h3>固有値</h3>
+                    <div id="eigenvalue-table"></div>
+                </div>
+
+                <div id="stability-result" style="display: none;"></div>
+
+                <div class="plot-container">
+                    <h3>固有値の複素平面プロット (s平面)</h3>
+                    <div id="eigenvalue-plot"></div>
+                </div>
+
+                <div id="mode-description" class="result" style="display: none;">
+                    <h3>モードの説明</h3>
+                    <div id="mode-info"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global system matrices
+        let A, B, C, D;
+        let n = 2, m = 1, p = 1; // Default dimensions
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMatrixSizes();
+
+            // Render KaTeX equations after page load
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        });
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                    contents[i].classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                    contents[i].classList.remove('active');
+                }
+            });
+        }
+
+        // Update matrix input sizes
+        function updateMatrixSizes() {
+            n = parseInt(document.getElementById('state-dim').value);
+            m = parseInt(document.getElementById('input-dim').value);
+            p = parseInt(document.getElementById('output-dim').value);
+
+            // Input validation
+            if (isNaN(n) || n < 1 || n > 10) {
+                alert('エラー: 状態数は1～10の整数を入力してください。');
+                n = 2;
+                document.getElementById('state-dim').value = 2;
+                return;
+            }
+            if (isNaN(m) || m < 1 || m > 10) {
+                alert('エラー: 入力数は1～10の整数を入力してください。');
+                m = 1;
+                document.getElementById('input-dim').value = 1;
+                return;
+            }
+            if (isNaN(p) || p < 1 || p > 10) {
+                alert('エラー: 出力数は1～10の整数を入力してください。');
+                p = 1;
+                document.getElementById('output-dim').value = 1;
+                return;
+            }
+
+            // Show warning for large matrices
+            const warning = document.getElementById('matrix-warning');
+            if (n >= 5 || m >= 5 || p >= 5) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+
+            // Create matrix input grids
+            createMatrixInput('matrix-a-container', n, n, 'a', getDefaultA());
+            createMatrixInput('matrix-b-container', n, m, 'b', getDefaultB());
+            createMatrixInput('matrix-c-container', p, n, 'c', getDefaultC());
+            createMatrixInput('matrix-d-container', p, m, 'd', getDefaultD());
+
+            // Update initial state inputs
+            updateInitialStateInputs();
+        }
+
+        // Get default matrices for 2x2 system
+        function getDefaultA() {
+            if (n === 2) return [[-1, 0], [0, -2]];
+            const mat = [];
+            for (let i = 0; i < n; i++) {
+                mat[i] = [];
+                for (let j = 0; j < n; j++) {
+                    mat[i][j] = (i === j) ? -1 : 0;
+                }
+            }
+            return mat;
+        }
+
+        function getDefaultB() {
+            const mat = [];
+            for (let i = 0; i < n; i++) {
+                mat[i] = [];
+                for (let j = 0; j < m; j++) {
+                    mat[i][j] = (j === 0) ? 1 : 0;
+                }
+            }
+            return mat;
+        }
+
+        function getDefaultC() {
+            const mat = [];
+            for (let i = 0; i < p; i++) {
+                mat[i] = [];
+                for (let j = 0; j < n; j++) {
+                    mat[i][j] = (i === 0 && j === 0) ? 1 : 0;
+                }
+            }
+            return mat;
+        }
+
+        function getDefaultD() {
+            const mat = [];
+            for (let i = 0; i < p; i++) {
+                mat[i] = [];
+                for (let j = 0; j < m; j++) {
+                    mat[i][j] = 0;
+                }
+            }
+            return mat;
+        }
+
+        // Create matrix input grid
+        function createMatrixInput(containerId, rows, cols, prefix, defaultValues) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const matrixDiv = document.createElement('div');
+            matrixDiv.className = 'matrix-input';
+
+            for (let i = 0; i < rows; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'matrix-row';
+
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = '0.01';
+                    input.id = `${prefix}-${i}-${j}`;
+                    input.value = defaultValues[i][j];
+                    rowDiv.appendChild(input);
+                }
+
+                matrixDiv.appendChild(rowDiv);
+            }
+
+            container.appendChild(matrixDiv);
+        }
+
+        // Read matrix from inputs (with validation and XSS protection)
+        function readMatrix(prefix, rows, cols) {
+            const mat = [];
+            for (let i = 0; i < rows; i++) {
+                mat[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    const element = document.getElementById(`${prefix}-${i}-${j}`);
+                    if (!element) {
+                        throw new Error(`行列要素 ${prefix}[${i}][${j}] が見つかりません。`);
+                    }
+                    // Parse value and validate (XSS protection: only numeric values accepted)
+                    const val = parseFloat(element.value);
+                    // Default to 0 for invalid inputs
+                    mat[i][j] = isNaN(val) ? 0 : val;
+                }
+            }
+            return math.matrix(mat);
+        }
+
+        // Display state equations with KaTeX
+        function displayStateEquations() {
+            try {
+                A = readMatrix('a', n, n);
+                B = readMatrix('b', n, m);
+                C = readMatrix('c', p, n);
+                D = readMatrix('d', p, m);
+
+                // Validate matrix sizes
+                const ASize = math.size(A);
+                const BSize = math.size(B);
+                const CSize = math.size(C);
+                const DSize = math.size(D);
+
+                if (ASize[0] !== n || ASize[1] !== n) {
+                    alert('エラー: A行列のサイズが不正です。');
+                    return;
+                }
+                if (BSize[0] !== n || BSize[1] !== m) {
+                    alert('エラー: B行列のサイズが不正です。');
+                    return;
+                }
+                if (CSize[0] !== p || CSize[1] !== n) {
+                    alert('エラー: C行列のサイズが不正です。');
+                    return;
+                }
+                if (DSize[0] !== p || DSize[1] !== m) {
+                    alert('エラー: D行列のサイズが不正です。');
+                    return;
+                }
+
+                const display = document.getElementById('equation-display');
+                const mathDiv = document.getElementById('equations-math');
+
+                // Format matrices for display
+                const AStr = formatMatrix(A);
+                const BStr = formatMatrix(B);
+                const CStr = formatMatrix(C);
+                const DStr = formatMatrix(D);
+
+            mathDiv.innerHTML = `
+                <p><strong>状態方程式:</strong></p>
+                <div style="margin: 15px 0;">
+                    $$\\dot{x}(t) = Ax(t) + Bu(t)$$
+                </div>
+                <p>where</p>
+                <div style="margin: 15px 0;">
+                    $$A = ${AStr}, \\quad B = ${BStr}$$
+                </div>
+                <p><strong>出力方程式:</strong></p>
+                <div style="margin: 15px 0;">
+                    $$y(t) = Cx(t) + Du(t)$$
+                </div>
+                <p>where</p>
+                <div style="margin: 15px 0;">
+                    $$C = ${CStr}, \\quad D = ${DStr}$$
+                </div>
+            `;
+
+                display.style.display = 'block';
+
+                // Re-render KaTeX
+                if (window.renderMathInElement) {
+                    renderMathInElement(mathDiv, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                }
+
+            } catch (error) {
+                alert('状態方程式表示エラー: ' + error.message + '\n\n行列の値を確認してください。');
+            }
+        }
+
+        // Format matrix for LaTeX display (XSS-safe)
+        function formatMatrix(mat) {
+            const arr = mat.toArray();
+            let latex = '\\begin{bmatrix}';
+            for (let i = 0; i < arr.length; i++) {
+                latex += arr[i].map(val => {
+                    // Ensure numeric value and format safely
+                    const numVal = parseFloat(val);
+                    if (isNaN(numVal)) return '0.00';
+                    if (!isFinite(numVal)) return numVal > 0 ? '\\infty' : '-\\infty';
+                    return numVal.toFixed(2);
+                }).join(' & ');
+                if (i < arr.length - 1) latex += ' \\\\ ';
+            }
+            latex += '\\end{bmatrix}';
+            return latex;
+        }
+
+        // Update time value from slider
+        function updateTimeFromSlider() {
+            const t = parseFloat(document.getElementById('time-slider').value);
+            document.getElementById('time-value').textContent = t.toFixed(1);
+            document.getElementById('time-input').value = t.toFixed(1);
+        }
+
+        // Update time value from numeric input
+        function updateTimeFromInput() {
+            const t = parseFloat(document.getElementById('time-input').value);
+            if (!isNaN(t) && t >= 0) {
+                document.getElementById('time-value').textContent = t.toFixed(1);
+                // Update slider if within range
+                if (t <= 10) {
+                    document.getElementById('time-slider').value = t;
+                }
+            }
+        }
+
+        // Calculate state transition matrix
+        function calculateStateTransitionMatrix() {
+            A = readMatrix('a', n, n);
+            const t = parseFloat(document.getElementById('time-input').value);
+
+            // Input validation
+            if (isNaN(t) || t < 0) {
+                alert('エラー: 時刻は0以上の数値を入力してください。');
+                return;
+            }
+
+            try {
+                // Check for singular matrix (numerical stability)
+                const det = math.det(A);
+                let warningMsg = '';
+
+                if (Math.abs(det) < 1e-10) {
+                    warningMsg = '<div class="alert alert-warning">⚠️ A行列は特異行列またはほぼ特異です（det(A) ≈ 0）。計算結果の精度に注意してください。</div>';
+                }
+
+                // Calculate Φ(t) = e^(At)
+                const At = math.multiply(A, t);
+                const Phi = math.expm(At);
+
+                // Check for numerical overflow/underflow
+                const PhiArray = Phi.toArray();
+                let hasInfinity = false;
+                let hasNaN = false;
+
+                for (let i = 0; i < PhiArray.length; i++) {
+                    for (let j = 0; j < PhiArray[i].length; j++) {
+                        if (!isFinite(PhiArray[i][j])) hasInfinity = true;
+                        if (isNaN(PhiArray[i][j])) hasNaN = true;
+                    }
+                }
+
+                if (hasNaN) {
+                    alert('計算エラー: 数値計算が失敗しました（NaN発生）。行列の値や時刻を確認してください。');
+                    return;
+                }
+
+                if (hasInfinity) {
+                    warningMsg += '<div class="alert alert-danger">⚠️ 計算結果に無限大の値が含まれます。システムが不安定または時刻が大きすぎる可能性があります。</div>';
+                }
+
+                // Display result
+                const resultDiv = document.getElementById('phi-result');
+                const matrixDiv = document.getElementById('phi-matrix');
+
+                matrixDiv.innerHTML = warningMsg + `
+                    <p>時刻 t = ${t.toFixed(1)} 秒における状態遷移行列:</p>
+                    <div style="margin: 15px 0;">
+                        $$\\Phi(${t.toFixed(1)}) = e^{At} = ${formatMatrix(Phi)}$$
+                    </div>
+                `;
+
+                resultDiv.style.display = 'block';
+                document.getElementById('phi-properties').style.display = 'block';
+
+                // Re-render KaTeX
+                if (window.renderMathInElement) {
+                    renderMathInElement(matrixDiv, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true}
+                        ]
+                    });
+                }
+            } catch (error) {
+                alert('計算エラー: ' + error.message + '\n\n行列の値や時刻を確認してください。');
+            }
+        }
+
+        // Update initial state inputs
+        function updateInitialStateInputs() {
+            const container = document.getElementById('initial-state-container');
+            container.innerHTML = '';
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'input-row';
+
+            for (let i = 0; i < n; i++) {
+                const div = document.createElement('div');
+                div.className = 'input-group';
+
+                const label = document.createElement('label');
+                label.textContent = `x${i+1}(0):`;
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `x0-${i}`;
+                input.value = (i === 0) ? '1' : '0';
+                input.step = '0.1';
+
+                div.appendChild(label);
+                div.appendChild(input);
+                rowDiv.appendChild(div);
+            }
+
+            container.appendChild(rowDiv);
+        }
+
+        // Run time response simulation
+        function runSimulation() {
+            try {
+                A = readMatrix('a', n, n);
+                B = readMatrix('b', n, m);
+                C = readMatrix('c', p, n);
+                D = readMatrix('d', p, m);
+
+                // Get initial state with validation
+                const x0 = [];
+                for (let i = 0; i < n; i++) {
+                    const val = parseFloat(document.getElementById(`x0-${i}`).value);
+                    if (isNaN(val)) {
+                        alert(`エラー: 初期状態 x${i+1}(0) に有効な数値を入力してください。`);
+                        return;
+                    }
+                    x0.push(val);
+                }
+
+                const inputType = document.getElementById('input-type').value;
+                const tFinal = parseFloat(document.getElementById('sim-time').value);
+                let dt = parseFloat(document.getElementById('sample-interval').value);
+
+                // Input validation
+                if (isNaN(tFinal) || tFinal <= 0) {
+                    alert('エラー: シミュレーション時間は正の数値を入力してください。');
+                    return;
+                }
+                if (isNaN(dt) || dt <= 0 || dt >= tFinal) {
+                    alert('エラー: サンプリング間隔は0より大きく、シミュレーション時間より小さい値を入力してください。');
+                    return;
+                }
+
+            // Limit plot points to 10000 for Plotly performance
+            const maxPoints = 10000;
+            const numPoints = Math.floor(tFinal / dt);
+            let warnings = [];
+
+            if (numPoints > maxPoints) {
+                dt = tFinal / maxPoints;
+                warnings.push('<div class="alert alert-warning">⚠️ サンプリング間隔を調整しました（プロット点数を10000以下に制限）。調整後の間隔: ' + dt.toFixed(4) + '秒</div>');
+            }
+
+                // Check for stability and show warning if needed
+                const eigenResult = math.eigs(A);
+                const isUnstable = eigenResult.values.some(lambda => {
+                    const re = (typeof lambda === 'object') ? lambda.re : lambda;
+                    return re > 0;
+                });
+
+                if (isUnstable) {
+                    warnings.push('<div class="alert alert-warning">⚠️ システムは不安定です（正の実部を持つ固有値が存在）。応答が発散する可能性があります。</div>');
+                }
+
+                // Check for complex eigenvalues
+                const hasComplexEigenvalues = eigenResult.values.some(lambda => {
+                    return (typeof lambda === 'object') && Math.abs(lambda.im) > 1e-10;
+                });
+
+                if (hasComplexEigenvalues) {
+                    warnings.push('<div class="alert alert-info">ℹ️ システムは複素固有値を持ちます。応答に振動成分が含まれます。</div>');
+                }
+
+                // Display all warnings
+                const warningDiv = document.getElementById('simulation-warning');
+                if (warnings.length > 0) {
+                    warningDiv.innerHTML = warnings.join('');
+                    warningDiv.style.display = 'block';
+                } else {
+                    warningDiv.style.display = 'none';
+                }
+
+                // Simulate
+                const tArray = [];
+                const xArray = Array(n).fill(0).map(() => []);
+                const yArray = Array(p).fill(0).map(() => []);
+
+                let x = math.matrix(x0);
+                let simulationError = false;
+
+                for (let t = 0; t <= tFinal; t += dt) {
+                    tArray.push(t);
+
+                    // Record state
+                    const xVec = x.toArray();
+
+                    // Check for numerical overflow/underflow
+                    let hasInvalidValue = false;
+                    for (let i = 0; i < n; i++) {
+                        if (!isFinite(xVec[i]) || isNaN(xVec[i])) {
+                            hasInvalidValue = true;
+                            break;
+                        }
+                        xArray[i].push(xVec[i]);
+                    }
+
+                    if (hasInvalidValue) {
+                        warnings.push('<div class="alert alert-danger">⚠️ シミュレーション中に数値オーバーフローが発生しました（t=' + t.toFixed(2) + '秒）。システムが不安定すぎる可能性があります。</div>');
+                        warningDiv.innerHTML = warnings.join('');
+                        warningDiv.style.display = 'block';
+                        simulationError = true;
+                        break;
+                    }
+
+                    // Calculate output
+                    let u;
+                    if (inputType === 'zero') {
+                        u = math.zeros(m);
+                    } else if (inputType === 'step') {
+                        u = math.ones(m);
+                    } else { // impulse
+                        u = (t < dt) ? math.multiply(math.ones(m), 1/dt) : math.zeros(m);
+                    }
+
+                    const y = math.add(math.multiply(C, x), math.multiply(D, u));
+                    const yVec = y.toArray();
+                    for (let i = 0; i < p; i++) {
+                        yArray[i].push(yVec[i]);
+                    }
+
+                    // Update state (Euler method)
+                    const xdot = math.add(math.multiply(A, x), math.multiply(B, u));
+                    x = math.add(x, math.multiply(xdot, dt));
+                }
+
+                if (simulationError) {
+                    return;
+                }
+
+            // Plot state variables
+            const stateTraces = [];
+            for (let i = 0; i < n; i++) {
+                stateTraces.push({
+                    x: tArray,
+                    y: xArray[i],
+                    name: `x${i+1}(t)`,
+                    type: 'scatter',
+                    mode: 'lines'
+                });
+            }
+
+            Plotly.newPlot('state-plot', stateTraces, {
+                title: '状態変数の時間応答',
+                xaxis: { title: '時間 (秒)' },
+                yaxis: { title: '状態変数' },
+                height: 400
+            });
+
+            // Plot output variables
+            const outputTraces = [];
+            for (let i = 0; i < p; i++) {
+                outputTraces.push({
+                    x: tArray,
+                    y: yArray[i],
+                    name: `y${i+1}(t)`,
+                    type: 'scatter',
+                    mode: 'lines'
+                });
+            }
+
+                Plotly.newPlot('output-plot', outputTraces, {
+                    title: '出力の時間応答',
+                    xaxis: { title: '時間 (秒)' },
+                    yaxis: { title: '出力' },
+                    height: 400
+                });
+
+            } catch (error) {
+                alert('シミュレーションエラー: ' + error.message + '\n\n行列の値や初期条件を確認してください。');
+            }
+        }
+
+        // Plot state trajectory (phase plane)
+        function plotTrajectory() {
+            if (n !== 2) {
+                document.getElementById('trajectory-dimension-check').style.display = 'block';
+                return;
+            }
+            document.getElementById('trajectory-dimension-check').style.display = 'none';
+
+            try {
+                A = readMatrix('a', n, n);
+
+                const x1Init = parseFloat(document.getElementById('x1-init').value);
+                const x2Init = parseFloat(document.getElementById('x2-init').value);
+
+                // Input validation
+                if (isNaN(x1Init) || isNaN(x2Init)) {
+                    alert('エラー: 初期状態に有効な数値を入力してください。');
+                    return;
+                }
+
+                const multipleTrajectories = document.getElementById('multiple-trajectories').checked;
+
+            const traces = [];
+            const tFinal = 10;
+            const dt = 0.01;
+
+            if (multipleTrajectories) {
+                // Plot trajectories from grid of initial conditions
+                for (let x1 = -2; x1 <= 2; x1 += 1) {
+                    for (let x2 = -2; x2 <= 2; x2 += 1) {
+                        if (x1 === 0 && x2 === 0) continue;
+                        const traj = simulateTrajectory(A, [x1, x2], tFinal, dt);
+                        traces.push({
+                            x: traj.x1,
+                            y: traj.x2,
+                            type: 'scatter',
+                            mode: 'lines',
+                            line: { width: 1 },
+                            showlegend: false,
+                            opacity: 0.5
+                        });
+                    }
+                }
+            }
+
+            // Plot main trajectory
+            const traj = simulateTrajectory(A, [x1Init, x2Init], tFinal, dt);
+            traces.push({
+                x: traj.x1,
+                y: traj.x2,
+                name: `初期条件: (${x1Init}, ${x2Init})`,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { width: 3 },
+                marker: { size: 4 }
+            });
+
+            // Plot equilibrium point
+            traces.push({
+                x: [0],
+                y: [0],
+                name: '平衡点',
+                type: 'scatter',
+                mode: 'markers',
+                marker: { size: 12, color: 'red', symbol: 'x' }
+            });
+
+                Plotly.newPlot('trajectory-plot', traces, {
+                    title: '状態軌道（位相面）',
+                    xaxis: { title: 'x₁', zeroline: true },
+                    yaxis: { title: 'x₂', zeroline: true },
+                    height: 500,
+                    showlegend: true
+                });
+
+            } catch (error) {
+                alert('位相面プロットエラー: ' + error.message + '\n\nA行列の値や初期条件を確認してください。');
+            }
+        }
+
+        // Simulate trajectory for phase plane
+        function simulateTrajectory(A, x0, tFinal, dt) {
+            const x1Array = [];
+            const x2Array = [];
+
+            let x = math.matrix(x0);
+
+            for (let t = 0; t <= tFinal; t += dt) {
+                const xVec = x.toArray();
+                x1Array.push(xVec[0]);
+                x2Array.push(xVec[1]);
+
+                // Update state (Euler method)
+                const xdot = math.multiply(A, x);
+                x = math.add(x, math.multiply(xdot, dt));
+
+                // Stop if trajectory goes too far
+                if (Math.abs(xVec[0]) > 100 || Math.abs(xVec[1]) > 100) break;
+            }
+
+            return { x1: x1Array, x2: x2Array };
+        }
+
+        // Analyze eigenvalues
+        function analyzeEigenvalues() {
+            try {
+                A = readMatrix('a', n, n);
+
+                // Check for singular matrix
+                const det = math.det(A);
+                let warnings = [];
+
+                if (Math.abs(det) < 1e-10) {
+                    warnings.push('<div class="alert alert-warning">⚠️ A行列は特異行列またはほぼ特異です（det(A) ≈ 0）。少なくとも1つの固有値が0です。</div>');
+                }
+
+                const eigenResult = math.eigs(A);
+                const eigenvalues = eigenResult.values;
+
+                // Validate eigenvalue computation
+                if (!eigenvalues || eigenvalues.length === 0) {
+                    alert('エラー: 固有値の計算に失敗しました。行列の値を確認してください。');
+                    return;
+                }
+
+                // Display eigenvalue table
+                let tableHTML = '<table><thead><tr><th>固有値</th><th>実部</th><th>虚部</th><th>絶対値</th></tr></thead><tbody>';
+
+                const reValues = [];
+                const imValues = [];
+
+                eigenvalues.forEach((lambda, i) => {
+                    let re, im, abs;
+                    if (typeof lambda === 'object' && lambda.re !== undefined) {
+                        re = lambda.re;
+                        im = lambda.im;
+                        abs = Math.sqrt(re*re + im*im);
+                    } else {
+                        re = lambda;
+                        im = 0;
+                        abs = Math.abs(re);
+                    }
+
+                    reValues.push(re);
+                    imValues.push(im);
+
+                    const lambdaStr = (im !== 0) ? `${re.toFixed(4)} + ${im.toFixed(4)}i` : `${re.toFixed(4)}`;
+                    tableHTML += `<tr>
+                        <td>λ${i+1} = ${lambdaStr}</td>
+                        <td>${re.toFixed(4)}</td>
+                        <td>${im.toFixed(4)}</td>
+                        <td>${abs.toFixed(4)}</td>
+                    </tr>`;
+                });
+
+                tableHTML += '</tbody></table>';
+                document.getElementById('eigenvalue-table').innerHTML = tableHTML;
+                document.getElementById('eigenvalue-results').style.display = 'block';
+
+                // Determine stability
+                const isStable = reValues.every(re => re < -1e-10);
+                const isMarginal = reValues.every(re => re <= 1e-10) && reValues.some(re => Math.abs(re) < 1e-10);
+
+                // Count complex eigenvalues
+                const complexCount = eigenvalues.filter(lambda => {
+                    const im = (typeof lambda === 'object') ? lambda.im : 0;
+                    return Math.abs(im) > 1e-10;
+                }).length;
+
+                const stabilityDiv = document.getElementById('stability-result');
+                let stabilityHTML = warnings.join('');
+
+                if (isStable) {
+                    stabilityHTML += '<div class="alert alert-success">✓ システムは<strong>漸近安定</strong>です（すべての固有値の実部が負）</div>';
+                } else if (isMarginal) {
+                    stabilityHTML += '<div class="alert alert-warning">⚠ システムは<strong>限界安定</strong>です（固有値の実部が0）</div>';
+                } else {
+                    stabilityHTML += '<div class="alert alert-danger">✗ システムは<strong>不安定</strong>です（正の実部を持つ固有値が存在）</div>';
+                }
+
+                if (complexCount > 0) {
+                    stabilityHTML += '<div class="alert alert-info">ℹ️ ' + complexCount + '個の複素固有値を検出しました。システムは振動的な応答を示します。</div>';
+                }
+
+                stabilityDiv.innerHTML = stabilityHTML;
+                stabilityDiv.style.display = 'block';
+
+                // Plot eigenvalues on complex plane
+                const trace = {
+                    x: reValues,
+                    y: imValues,
+                    type: 'scatter',
+                    mode: 'markers',
+                    marker: { size: 12, color: 'blue' },
+                    name: '固有値'
+                };
+
+                const imaginaryAxis = {
+                    x: [0, 0],
+                    y: [Math.min(...imValues, -2), Math.max(...imValues, 2)],
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: 'red', dash: 'dash', width: 2 },
+                    name: '虚軸（安定性境界）'
+                };
+
+                Plotly.newPlot('eigenvalue-plot', [trace, imaginaryAxis], {
+                    title: '固有値の分布（s平面）',
+                    xaxis: { title: '実部 Re(λ)', zeroline: true },
+                    yaxis: { title: '虚部 Im(λ)', zeroline: true },
+                    height: 500
+                });
+
+                // Mode description
+                let modeHTML = '<ul style="line-height: 2; margin-left: 20px;">';
+                eigenvalues.forEach((lambda, i) => {
+                    let re, im;
+                    if (typeof lambda === 'object' && lambda.re !== undefined) {
+                        re = lambda.re;
+                        im = lambda.im;
+                    } else {
+                        re = lambda;
+                        im = 0;
+                    }
+
+                    let description = '';
+                    if (im === 0) {
+                        if (re < 0) {
+                            description = '単調減衰モード';
+                        } else if (re > 0) {
+                            description = '単調発散モード';
+                        } else {
+                            description = '定常モード';
+                        }
+                    } else {
+                        if (re < 0) {
+                            description = '減衰振動モード（固有周波数: ' + Math.abs(im).toFixed(3) + ' rad/s）';
+                        } else if (re > 0) {
+                            description = '発散振動モード（固有周波数: ' + Math.abs(im).toFixed(3) + ' rad/s）';
+                        } else {
+                            description = '持続振動モード（固有周波数: ' + Math.abs(im).toFixed(3) + ' rad/s）';
+                        }
+                    }
+
+                    modeHTML += `<li><strong>λ${i+1}:</strong> ${description}</li>`;
+                });
+                modeHTML += '</ul>';
+
+                document.getElementById('mode-info').innerHTML = modeHTML;
+                document.getElementById('mode-description').style.display = 'block';
+
+            } catch (error) {
+                alert('固有値計算エラー: ' + error.message + '\n\nA行列の値を確認してください。\n\n詳細: 固有値計算は数値的に不安定な場合があります。特異行列や非常に大きな/小さな値を含む行列では失敗する可能性があります。');
+            }
+        }
+    </script>
+</body>
+</html>

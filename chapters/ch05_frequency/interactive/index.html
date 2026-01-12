@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第5章 周波数伝達関数 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- KaTeX JS -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tab-container {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #495057;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .result-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .formula-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        tbody tr.selected {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+        }
+
+        .element-details {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .element-details.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .element-details h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .element-details h4 {
+            color: #495057;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .element-details p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .element-details ul {
+            margin-left: 20px;
+            line-height: 2;
+        }
+
+        .formula-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            header p {
+                font-size: 1rem;
+            }
+
+            .tab-button {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .control-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第5章 周波数伝達関数</h1>
+            <p>インタラクティブ学習ツール - Bode線図・Nyquist線図・周波数応答シミュレータ</p>
+        </header>
+
+        <div class="tab-container">
+            <button class="tab-button active" onclick="switchTab('bode')">Bode線図</button>
+            <button class="tab-button" onclick="switchTab('nyquist')">Nyquist線図</button>
+            <button class="tab-button" onclick="switchTab('simulator')">周波数応答シミュレータ</button>
+            <button class="tab-button" onclick="switchTab('reference')">基本要素の特性表</button>
+        </div>
+
+        <!-- Bode線図タブ -->
+        <div id="bode" class="tab-content active">
+            <div class="info-box">
+                <h3>Bode線図（ボード線図）について</h3>
+                <p>Bode線図は周波数伝達関数のゲイン特性と位相特性を対数周波数軸上に描いたグラフです。ゲインはdB（デシベル）、位相は度（°）で表示されます。</p>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="bode-system">伝達関数の選択:</label>
+                    <select id="bode-system" onchange="updateBodePlot()">
+                        <option value="first-order">1次遅れ系: G(s) = K/(1+Ts)</option>
+                        <option value="second-order">2次系: G(s) = ωn²/(s²+2ζωns+ωn²)</option>
+                        <option value="integrator">積分器: G(s) = 1/s</option>
+                        <option value="differentiator">微分器: G(s) = s</option>
+                        <option value="proportional">比例要素: G(s) = K</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="bode-gain">ゲイン K:</label>
+                        <input type="number" id="bode-gain" value="1" step="0.1" min="0.1" onchange="updateBodePlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="bode-time-constant">時定数 T (1次系):</label>
+                        <input type="number" id="bode-time-constant" value="1" step="0.1" min="0.1" onchange="updateBodePlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="bode-natural-freq">固有周波数 ωn (2次系):</label>
+                        <input type="number" id="bode-natural-freq" value="1" step="0.1" min="0.1" onchange="updateBodePlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="bode-damping">減衰比 ζ (2次系):</label>
+                        <input type="number" id="bode-damping" value="0.5" step="0.1" min="0" max="2" onchange="updateBodePlot()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-display" id="bode-formula"></div>
+
+            <h3>ゲイン線図</h3>
+            <div class="chart-container">
+                <canvas id="bode-gain-chart"></canvas>
+            </div>
+
+            <h3>位相線図</h3>
+            <div class="chart-container">
+                <canvas id="bode-phase-chart"></canvas>
+            </div>
+
+            <div class="result-display">
+                <h3>折れ点周波数と特性値</h3>
+                <div id="bode-results"></div>
+            </div>
+        </div>
+
+        <!-- Nyquist線図タブ -->
+        <div id="nyquist" class="tab-content">
+            <div class="info-box">
+                <h3>Nyquist線図（ナイキスト線図）について</h3>
+                <p>Nyquist線図は周波数伝達関数G(jω)の実部と虚部を複素平面上に描いた軌跡です。ωを0から∞まで変化させたときの軌跡を表示します。</p>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="nyquist-system">伝達関数の選択:</label>
+                    <select id="nyquist-system" onchange="updateNyquistPlot()">
+                        <option value="first-order">1次遅れ系: G(s) = K/(1+Ts)</option>
+                        <option value="second-order">2次系: G(s) = ωn²/(s²+2ζωns+ωn²)</option>
+                        <option value="integrator">積分器: G(s) = 1/s</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="nyquist-gain">ゲイン K:</label>
+                        <input type="number" id="nyquist-gain" value="1" step="0.1" min="0.1" onchange="updateNyquistPlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nyquist-time-constant">時定数 T (1次系):</label>
+                        <input type="number" id="nyquist-time-constant" value="1" step="0.1" min="0.1" onchange="updateNyquistPlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nyquist-natural-freq">固有周波数 ωn (2次系):</label>
+                        <input type="number" id="nyquist-natural-freq" value="1" step="0.1" min="0.1" onchange="updateNyquistPlot()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nyquist-damping">減衰比 ζ (2次系):</label>
+                        <input type="number" id="nyquist-damping" value="0.5" step="0.1" min="0" max="2" onchange="updateNyquistPlot()">
+                    </div>
+                </div>
+
+                <div class="control-group" style="margin-top: 20px;">
+                    <button class="button" id="nyquist-animate-btn" onclick="toggleNyquistAnimation()">
+                        アニメーション開始
+                    </button>
+                </div>
+            </div>
+
+            <div class="formula-display" id="nyquist-formula"></div>
+
+            <div class="chart-container" style="height: 500px;">
+                <canvas id="nyquist-chart"></canvas>
+            </div>
+
+            <div class="result-display">
+                <h3>特性値</h3>
+                <div id="nyquist-results"></div>
+            </div>
+
+            <div class="result-display">
+                <h3>軸との交点</h3>
+                <div id="nyquist-intersections"></div>
+            </div>
+        </div>
+
+        <!-- 周波数応答シミュレータタブ -->
+        <div id="simulator" class="tab-content">
+            <div class="info-box">
+                <h3>周波数応答シミュレータについて</h3>
+                <p>正弦波入力に対するシステムの応答を観察できます。周波数を変化させることで、ゲイン（振幅比）と位相差の変化を視覚的に理解できます。</p>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="sim-system">伝達関数の選択:</label>
+                    <select id="sim-system" onchange="updateSimulation()">
+                        <option value="first-order">1次遅れ系: G(s) = K/(1+Ts)</option>
+                        <option value="second-order">2次系: G(s) = ωn²/(s²+2ζωns+ωn²)</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="sim-frequency">入力周波数 ω [rad/s]: <span id="freq-value">1.0</span></label>
+                        <input type="range" id="sim-frequency" min="0.1" max="10" step="0.1" value="1" oninput="updateSimulation()">
+                    </div>
+                    <div class="control-group">
+                        <label for="sim-gain">ゲイン K:</label>
+                        <input type="number" id="sim-gain" value="1" step="0.1" min="0.1" onchange="updateSimulation()">
+                    </div>
+                    <div class="control-group">
+                        <label for="sim-time-constant">時定数 T (1次系):</label>
+                        <input type="number" id="sim-time-constant" value="1" step="0.1" min="0.1" onchange="updateSimulation()">
+                    </div>
+                    <div class="control-group">
+                        <label for="sim-natural-freq">固有周波数 ωn (2次系):</label>
+                        <input type="number" id="sim-natural-freq" value="1" step="0.1" min="0.1" onchange="updateSimulation()">
+                    </div>
+                    <div class="control-group">
+                        <label for="sim-damping">減衰比 ζ (2次系):</label>
+                        <input type="number" id="sim-damping" value="0.5" step="0.1" min="0.01" max="2" onchange="updateSimulation()">
+                    </div>
+                </div>
+            </div>
+
+            <h3>入力と出力の波形</h3>
+            <div class="chart-container">
+                <canvas id="sim-waveform-chart"></canvas>
+            </div>
+
+            <div class="result-display">
+                <h3>周波数応答特性</h3>
+                <div id="sim-results"></div>
+            </div>
+        </div>
+
+        <!-- 基本要素の特性表タブ -->
+        <div id="reference" class="tab-content">
+            <div class="info-box">
+                <h3>基本要素の周波数特性</h3>
+                <p>制御系の基本要素の周波数伝達関数とその特性を示します。<strong>行をクリックすると詳細が表示されます。</strong></p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>要素名</th>
+                        <th>伝達関数</th>
+                        <th>ゲイン特性</th>
+                        <th>位相特性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr onclick="showElementDetails('proportional')" data-element="proportional">
+                        <td><strong>比例要素</strong></td>
+                        <td><span class="math">K</span></td>
+                        <td><span class="math">20\log_{10}K</span> [dB] (一定)</td>
+                        <td><span class="math">0°</span> (一定)</td>
+                    </tr>
+                    <tr onclick="showElementDetails('integrator')" data-element="integrator">
+                        <td><strong>積分器</strong></td>
+                        <td><span class="math">\frac{1}{s}</span></td>
+                        <td><span class="math">-20\log_{10}\omega</span> [dB] (-20dB/dec)</td>
+                        <td><span class="math">-90°</span> (一定)</td>
+                    </tr>
+                    <tr onclick="showElementDetails('differentiator')" data-element="differentiator">
+                        <td><strong>微分器</strong></td>
+                        <td><span class="math">s</span></td>
+                        <td><span class="math">20\log_{10}\omega</span> [dB] (+20dB/dec)</td>
+                        <td><span class="math">+90°</span> (一定)</td>
+                    </tr>
+                    <tr onclick="showElementDetails('first-order-lag')" data-element="first-order-lag">
+                        <td><strong>1次遅れ系</strong></td>
+                        <td><span class="math">\frac{K}{1+Ts}</span></td>
+                        <td><span class="math">20\log_{10}\frac{K}{\sqrt{1+(T\omega)^2}}</span> [dB]</td>
+                        <td><span class="math">-\tan^{-1}(T\omega)</span></td>
+                    </tr>
+                    <tr onclick="showElementDetails('first-order-lead')" data-element="first-order-lead">
+                        <td><strong>1次進み系</strong></td>
+                        <td><span class="math">K(1+Ts)</span></td>
+                        <td><span class="math">20\log_{10}(K\sqrt{1+(T\omega)^2})</span> [dB]</td>
+                        <td><span class="math">\tan^{-1}(T\omega)</span></td>
+                    </tr>
+                    <tr onclick="showElementDetails('second-order')" data-element="second-order">
+                        <td><strong>2次系</strong></td>
+                        <td><span class="math">\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}</span></td>
+                        <td>複雑（共振ピークあり、ζに依存）</td>
+                        <td><span class="math">-\tan^{-1}\left(\frac{2\zeta\omega/\omega_n}{1-(\omega/\omega_n)^2}\right)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 詳細表示エリア -->
+            <div id="element-details-container" class="element-details"></div>
+
+            <div class="info-box">
+                <h3>重要な用語</h3>
+                <ul style="line-height: 2;">
+                    <li><strong>折れ点周波数（カットオフ周波数）:</strong> ゲイン特性の漸近線の交点となる周波数</li>
+                    <li><strong>-3dB帯域幅:</strong> ゲインが低周波数時の値から3dB低下する周波数</li>
+                    <li><strong>共振周波数:</strong> 2次系でゲインがピークとなる周波数（ζ < 1/√2のとき）</li>
+                    <li><strong>dB/dec:</strong> 周波数が10倍（1 decade）変化したときのゲインの変化 [dB]</li>
+                    <li><strong>位相余裕:</strong> 安定性の指標（ゲインが0dBのときの位相と-180°の差）</li>
+                    <li><strong>ゲイン余裕:</strong> 安定性の指標（位相が-180°のときのゲインと0dBの差）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js インスタンス
+        let bodeGainChart = null;
+        let bodePhaseChart = null;
+        let nyquistChart = null;
+        let simWaveformChart = null;
+
+        // Nyquistアニメーション用変数
+        let nyquistAnimationId = null;
+        let nyquistAnimationRunning = false;
+        let nyquistCurrentFreqIndex = 0;
+        let nyquistFrequencies = [];
+        let nyquistAllData = [];
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 周波数伝達関数の計算
+        function calculateFrequencyResponse(omega, systemType, params) {
+            const K = params.K || 1;
+            const T = params.T || 1;
+            const wn = params.wn || 1;
+            const zeta = params.zeta || 0.5;
+
+            let real, imag, magnitude, phase;
+
+            switch(systemType) {
+                case 'proportional':
+                    real = K;
+                    imag = 0;
+                    break;
+
+                case 'integrator':
+                    real = 0;
+                    imag = -K / omega;
+                    break;
+
+                case 'differentiator':
+                    real = 0;
+                    imag = K * omega;
+                    break;
+
+                case 'first-order':
+                    const denom1 = 1 + (T * omega) ** 2;
+                    real = K / denom1;
+                    imag = -K * T * omega / denom1;
+                    break;
+
+                case 'second-order':
+                    const w_ratio = omega / wn;
+                    const denom2_real = 1 - w_ratio ** 2;
+                    const denom2_imag = 2 * zeta * w_ratio;
+                    const denom2_mag_sq = denom2_real ** 2 + denom2_imag ** 2;
+                    real = denom2_real / denom2_mag_sq;
+                    imag = -denom2_imag / denom2_mag_sq;
+                    break;
+
+                default:
+                    real = 1;
+                    imag = 0;
+            }
+
+            magnitude = Math.sqrt(real ** 2 + imag ** 2);
+            phase = Math.atan2(imag, real) * 180 / Math.PI;
+
+            return {
+                real: real,
+                imag: imag,
+                magnitude: magnitude,
+                magnitudeDb: 20 * Math.log10(magnitude),
+                phase: phase
+            };
+        }
+
+        // Bode線図の更新
+        function updateBodePlot() {
+            const systemType = document.getElementById('bode-system').value;
+            const K = parseFloat(document.getElementById('bode-gain').value);
+            const T = parseFloat(document.getElementById('bode-time-constant').value);
+            const wn = parseFloat(document.getElementById('bode-natural-freq').value);
+            const zeta = parseFloat(document.getElementById('bode-damping').value);
+
+            const params = { K, T, wn, zeta };
+
+            // 周波数範囲の生成（対数スケール）
+            const frequencies = [];
+            for (let i = -2; i <= 2; i += 0.05) {
+                frequencies.push(Math.pow(10, i));
+            }
+
+            const gainData = [];
+            const phaseData = [];
+
+            frequencies.forEach(omega => {
+                const response = calculateFrequencyResponse(omega, systemType, params);
+                gainData.push({ x: omega, y: response.magnitudeDb });
+                phaseData.push({ x: omega, y: response.phase });
+            });
+
+            // ゲイン線図
+            if (bodeGainChart) bodeGainChart.destroy();
+            const gainCtx = document.getElementById('bode-gain-chart').getContext('2d');
+            bodeGainChart = new Chart(gainCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'ゲイン [dB]',
+                        data: gainData,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: '周波数 ω [rad/s]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'ゲイン [dB]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `ω = ${context.parsed.x.toFixed(3)}, ゲイン = ${context.parsed.y.toFixed(2)} dB`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 位相線図
+            if (bodePhaseChart) bodePhaseChart.destroy();
+            const phaseCtx = document.getElementById('bode-phase-chart').getContext('2d');
+            bodePhaseChart = new Chart(phaseCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: '位相 [deg]',
+                        data: phaseData,
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: '周波数 ω [rad/s]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '位相 [deg]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `ω = ${context.parsed.x.toFixed(3)}, 位相 = ${context.parsed.y.toFixed(2)}°`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 伝達関数の表示
+            updateBodeFormula(systemType, params);
+
+            // 特性値の表示
+            updateBodeResults(systemType, params);
+        }
+
+        function updateBodeFormula(systemType, params) {
+            const formulaDiv = document.getElementById('bode-formula');
+            let formula = '';
+
+            switch(systemType) {
+                case 'proportional':
+                    formula = `G(s) = ${params.K}`;
+                    break;
+                case 'integrator':
+                    formula = `G(s) = \\frac{${params.K}}{s}`;
+                    break;
+                case 'differentiator':
+                    formula = `G(s) = ${params.K}s`;
+                    break;
+                case 'first-order':
+                    formula = `G(s) = \\frac{${params.K}}{1 + ${params.T}s}`;
+                    break;
+                case 'second-order':
+                    formula = `G(s) = \\frac{${params.wn}^2}{s^2 + ${(2*params.zeta*params.wn).toFixed(2)}s + ${params.wn}^2}`;
+                    break;
+            }
+
+            formulaDiv.innerHTML = '';
+            katex.render(formula, formulaDiv, {
+                throwOnError: false,
+                displayMode: true
+            });
+        }
+
+        function updateBodeResults(systemType, params) {
+            const resultsDiv = document.getElementById('bode-results');
+            let html = '';
+
+            if (systemType === 'first-order') {
+                const cornerFreq = 1 / params.T;
+                html += `<div class="result-item">
+                    <span class="result-label">折れ点周波数:</span>
+                    <span class="result-value">${cornerFreq.toFixed(3)} rad/s</span>
+                </div>`;
+                html += `<div class="result-item">
+                    <span class="result-label">-3dB周波数:</span>
+                    <span class="result-value">${cornerFreq.toFixed(3)} rad/s</span>
+                </div>`;
+            } else if (systemType === 'second-order') {
+                if (params.zeta < 1 / Math.sqrt(2)) {
+                    const resonanceFreq = params.wn * Math.sqrt(1 - 2 * params.zeta ** 2);
+                    html += `<div class="result-item">
+                        <span class="result-label">共振周波数:</span>
+                        <span class="result-value">${resonanceFreq.toFixed(3)} rad/s</span>
+                    </div>`;
+                }
+                html += `<div class="result-item">
+                    <span class="result-label">固有周波数:</span>
+                    <span class="result-value">${params.wn.toFixed(3)} rad/s</span>
+                </div>`;
+                html += `<div class="result-item">
+                    <span class="result-label">減衰比:</span>
+                    <span class="result-value">${params.zeta.toFixed(3)}</span>
+                </div>`;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Nyquist線図の更新
+        function updateNyquistPlot() {
+            const systemType = document.getElementById('nyquist-system').value;
+            const K = parseFloat(document.getElementById('nyquist-gain').value);
+            const T = parseFloat(document.getElementById('nyquist-time-constant').value);
+            const wn = parseFloat(document.getElementById('nyquist-natural-freq').value);
+            const zeta = parseFloat(document.getElementById('nyquist-damping').value);
+
+            const params = { K, T, wn, zeta };
+
+            // アニメーション停止
+            if (nyquistAnimationRunning) {
+                stopNyquistAnimation();
+            }
+
+            // 周波数範囲の生成
+            nyquistFrequencies = [];
+            for (let i = 0; i <= 100; i++) {
+                if (i < 20) {
+                    nyquistFrequencies.push(i * 0.1);
+                } else {
+                    nyquistFrequencies.push(2 + (i - 20) * 0.5);
+                }
+            }
+
+            const nyquistData = [];
+            nyquistAllData = [];
+
+            nyquistFrequencies.forEach(omega => {
+                if (omega > 0) {
+                    const response = calculateFrequencyResponse(omega, systemType, params);
+                    nyquistData.push({ x: response.real, y: response.imag });
+                    nyquistAllData.push({
+                        omega: omega,
+                        x: response.real,
+                        y: response.imag
+                    });
+                }
+            });
+
+            if (nyquistChart) nyquistChart.destroy();
+            const nyquistCtx = document.getElementById('nyquist-chart').getContext('2d');
+            nyquistChart = new Chart(nyquistCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Nyquist軌跡',
+                            data: nyquistData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 1,
+                            tension: 0.1,
+                            showLine: true
+                        },
+                        {
+                            label: '現在のω',
+                            data: [],
+                            borderColor: '#f093fb',
+                            backgroundColor: '#f093fb',
+                            pointRadius: 8,
+                            pointHoverRadius: 10,
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: '実部 Re[G(jω)]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: '虚部 Im[G(jω)]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `Re = ${context.parsed.x.toFixed(3)}, Im = ${context.parsed.y.toFixed(3)}`;
+                                    } else {
+                                        const idx = nyquistCurrentFreqIndex;
+                                        if (idx < nyquistAllData.length) {
+                                            return `ω = ${nyquistAllData[idx].omega.toFixed(3)}, Re = ${context.parsed.x.toFixed(3)}, Im = ${context.parsed.y.toFixed(3)}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 伝達関数の表示
+            updateNyquistFormula(systemType, params);
+
+            // 特性値の表示
+            updateNyquistResults(nyquistData);
+
+            // 軸との交点の計算と表示
+            calculateAndDisplayIntersections(systemType, params);
+        }
+
+        function updateNyquistFormula(systemType, params) {
+            const formulaDiv = document.getElementById('nyquist-formula');
+            let formula = '';
+
+            switch(systemType) {
+                case 'integrator':
+                    formula = `G(j\\omega) = \\frac{${params.K}}{j\\omega}`;
+                    break;
+                case 'first-order':
+                    formula = `G(j\\omega) = \\frac{${params.K}}{1 + j${params.T}\\omega}`;
+                    break;
+                case 'second-order':
+                    formula = `G(j\\omega) = \\frac{${params.wn}^2}{-\\omega^2 + j${(2*params.zeta*params.wn).toFixed(2)}\\omega + ${params.wn}^2}`;
+                    break;
+            }
+
+            formulaDiv.innerHTML = '';
+            katex.render(formula, formulaDiv, {
+                throwOnError: false,
+                displayMode: true
+            });
+        }
+
+        function updateNyquistResults(nyquistData) {
+            const resultsDiv = document.getElementById('nyquist-results');
+
+            const startPoint = nyquistData[0];
+            const endPoint = nyquistData[nyquistData.length - 1];
+
+            let html = `
+                <div class="result-item">
+                    <span class="result-label">ω→0での点:</span>
+                    <span class="result-value">(${startPoint.x.toFixed(3)}, ${startPoint.y.toFixed(3)})</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ω→∞での点:</span>
+                    <span class="result-value">(${endPoint.x.toFixed(3)}, ${endPoint.y.toFixed(3)})</span>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // 軸との交点を計算して表示
+        function calculateAndDisplayIntersections(systemType, params) {
+            const intersectionsDiv = document.getElementById('nyquist-intersections');
+            let html = '';
+
+            const realAxisIntersections = [];
+            const imagAxisIntersections = [];
+
+            for (let i = 0; i < nyquistAllData.length - 1; i++) {
+                const p1 = nyquistAllData[i];
+                const p2 = nyquistAllData[i + 1];
+
+                if (p1.y * p2.y < 0) {
+                    const t = -p1.y / (p2.y - p1.y);
+                    const xIntersect = p1.x + t * (p2.x - p1.x);
+                    const omegaIntersect = p1.omega + t * (p2.omega - p1.omega);
+                    realAxisIntersections.push({ x: xIntersect, omega: omegaIntersect });
+                }
+
+                if (p1.x * p2.x < 0) {
+                    const t = -p1.x / (p2.x - p1.x);
+                    const yIntersect = p1.y + t * (p2.y - p1.y);
+                    const omegaIntersect = p1.omega + t * (p2.omega - p1.omega);
+                    imagAxisIntersections.push({ y: yIntersect, omega: omegaIntersect });
+                }
+            }
+
+            if (realAxisIntersections.length > 0) {
+                html += '<h4 style="margin-top: 15px; color: #495057;">実軸との交点:</h4>';
+                realAxisIntersections.forEach((point, idx) => {
+                    html += `<div class="result-item">
+                        <span class="result-label">交点${idx + 1} (ω = ${point.omega.toFixed(3)}):</span>
+                        <span class="result-value">(${point.x.toFixed(3)}, 0)</span>
+                    </div>`;
+                });
+            } else {
+                html += '<div class="result-item"><span class="result-label">実軸との交点:</span><span class="result-value">なし</span></div>';
+            }
+
+            if (imagAxisIntersections.length > 0) {
+                html += '<h4 style="margin-top: 15px; color: #495057;">虚軸との交点:</h4>';
+                imagAxisIntersections.forEach((point, idx) => {
+                    html += `<div class="result-item">
+                        <span class="result-label">交点${idx + 1} (ω = ${point.omega.toFixed(3)}):</span>
+                        <span class="result-value">(0, ${point.y.toFixed(3)})</span>
+                    </div>`;
+                });
+            } else {
+                html += '<div class="result-item"><span class="result-label">虚軸との交点:</span><span class="result-value">なし</span></div>';
+            }
+
+            intersectionsDiv.innerHTML = html;
+        }
+
+        // アニメーション関連関数
+        function toggleNyquistAnimation() {
+            if (nyquistAnimationRunning) {
+                stopNyquistAnimation();
+            } else {
+                startNyquistAnimation();
+            }
+        }
+
+        function startNyquistAnimation() {
+            nyquistAnimationRunning = true;
+            nyquistCurrentFreqIndex = 0;
+            document.getElementById('nyquist-animate-btn').textContent = 'アニメーション停止';
+            animateNyquistStep();
+        }
+
+        function stopNyquistAnimation() {
+            nyquistAnimationRunning = false;
+            if (nyquistAnimationId) {
+                cancelAnimationFrame(nyquistAnimationId);
+                nyquistAnimationId = null;
+            }
+            document.getElementById('nyquist-animate-btn').textContent = 'アニメーション開始';
+
+            if (nyquistChart && nyquistChart.data.datasets[1]) {
+                nyquistChart.data.datasets[1].data = [];
+                nyquistChart.update('none');
+            }
+        }
+
+        function animateNyquistStep() {
+            if (!nyquistAnimationRunning || !nyquistChart) return;
+
+            if (nyquistCurrentFreqIndex < nyquistAllData.length) {
+                const currentPoint = nyquistAllData[nyquistCurrentFreqIndex];
+
+                nyquistChart.data.datasets[1].data = [{ x: currentPoint.x, y: currentPoint.y }];
+                nyquistChart.update('none');
+
+                nyquistCurrentFreqIndex++;
+
+                setTimeout(() => {
+                    nyquistAnimationId = requestAnimationFrame(animateNyquistStep);
+                }, 50);
+            } else {
+                nyquistCurrentFreqIndex = 0;
+                nyquistAnimationId = requestAnimationFrame(animateNyquistStep);
+            }
+        }
+
+        // シミュレーションの更新
+        function updateSimulation() {
+            const systemType = document.getElementById('sim-system').value;
+            const omega = parseFloat(document.getElementById('sim-frequency').value);
+            const K = parseFloat(document.getElementById('sim-gain').value);
+            const T = parseFloat(document.getElementById('sim-time-constant').value);
+            const wn = parseFloat(document.getElementById('sim-natural-freq').value);
+            const zeta = parseFloat(document.getElementById('sim-damping').value);
+
+            document.getElementById('freq-value').textContent = omega.toFixed(1);
+
+            const params = { K, T, wn, zeta };
+            const response = calculateFrequencyResponse(omega, systemType, params);
+
+            // 時間軸の生成
+            const period = 2 * Math.PI / omega;
+            const tMax = 4 * period;
+            const timePoints = [];
+            const inputData = [];
+            const outputData = [];
+
+            for (let i = 0; i <= 200; i++) {
+                const t = (tMax / 200) * i;
+                timePoints.push(t);
+
+                // 入力信号
+                const input = Math.sin(omega * t);
+                inputData.push({ x: t, y: input });
+
+                // 出力信号
+                const output = response.magnitude * Math.sin(omega * t + response.phase * Math.PI / 180);
+                outputData.push({ x: t, y: output });
+            }
+
+            if (simWaveformChart) simWaveformChart.destroy();
+            const simCtx = document.getElementById('sim-waveform-chart').getContext('2d');
+            simWaveformChart = new Chart(simCtx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: '入力 u(t)',
+                            data: inputData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: '出力 y(t)',
+                            data: outputData,
+                            borderColor: '#f093fb',
+                            backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: '時間 t [s]'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '振幅'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+
+            // 結果の表示
+            updateSimResults(omega, response);
+        }
+
+        function updateSimResults(omega, response) {
+            const resultsDiv = document.getElementById('sim-results');
+
+            const html = `
+                <div class="result-item">
+                    <span class="result-label">入力周波数 ω:</span>
+                    <span class="result-value">${omega.toFixed(3)} rad/s</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ゲイン（振幅比）:</span>
+                    <span class="result-value">${response.magnitude.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ゲイン [dB]:</span>
+                    <span class="result-value">${response.magnitudeDb.toFixed(2)} dB</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">位相差:</span>
+                    <span class="result-value">${response.phase.toFixed(2)}°</span>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // 基本要素の詳細情報データベース
+        const elementDetailsData = {
+            'proportional': {
+                title: '比例要素（Proportional Element）',
+                transfer: 'G(s) = K',
+                description: '比例要素は、入力に定数Kを乗じた値を出力する最も基本的な要素です。ゲインKは比例ゲインと呼ばれます。',
+                characteristics: [
+                    'ゲイン特性は周波数によらず一定（20log₁₀K [dB]）',
+                    '位相特性は常に0°で一定',
+                    '周波数応答は入力と同位相で、振幅のみがK倍される',
+                    'Bode線図では水平線として表される'
+                ],
+                applications: '制御系の基本ゲイン調整、信号増幅器、センサのスケーリングなど',
+                notes: 'K>1のとき増幅器、K<1のとき減衰器として動作します。K>0であれば位相は0°、K<0であれば位相は±180°となります。'
+            },
+            'integrator': {
+                title: '積分器（Integrator）',
+                transfer: 'G(s) = \\frac{1}{s}',
+                description: '積分器は入力信号を時間積分する要素です。過去の入力の累積効果を持ちます。',
+                characteristics: [
+                    'ゲイン特性は-20dB/decの傾きで減少（-20log₁₀ω [dB]）',
+                    '位相特性は常に-90°で一定',
+                    '低周波数でゲインが大きく、高周波数で小さくなる',
+                    '定常偏差を0にする効果がある（型が1つ増える）'
+                ],
+                applications: 'I制御（積分制御）、累積カウンタ、電荷蓄積回路など',
+                notes: '積分器はDC成分を無限に増幅するため、不安定化の要因となることがあります。実際の回路では、低周波数で飽和する特性を持つことが多いです。'
+            },
+            'differentiator': {
+                title: '微分器（Differentiator）',
+                transfer: 'G(s) = s',
+                description: '微分器は入力信号の時間微分を出力する要素です。信号の変化率を検出します。',
+                characteristics: [
+                    'ゲイン特性は+20dB/decの傾きで増加（20log₁₀ω [dB]）',
+                    '位相特性は常に+90°で一定',
+                    '高周波数でゲインが大きく、低周波数で小さくなる',
+                    'ノイズを増幅しやすい'
+                ],
+                applications: 'D制御（微分制御）、速度検出器、エッジ検出など',
+                notes: '理想的な微分器は実現できません。実際には高周波数帯域で制限される擬似微分器が使用されます。ノイズ増幅に注意が必要です。'
+            },
+            'first-order-lag': {
+                title: '1次遅れ系（First-Order Lag System）',
+                transfer: 'G(s) = \\frac{K}{1+Ts}',
+                description: '1次遅れ系は最も基本的な動的システムで、RC回路、温度システム、多くの物理系で見られます。',
+                characteristics: [
+                    '折れ点周波数：ωc = 1/T [rad/s]',
+                    '低周波数ではゲイン≈K、高周波数では-20dB/decで減少',
+                    '位相は0°から-90°へ単調減少（-tan⁻¹(Tω)）',
+                    '折れ点周波数でゲインは-3dB、位相は-45°'
+                ],
+                applications: 'ローパスフィルタ、温度制御系、RC回路、モータの速度応答など',
+                notes: '時定数Tが大きいほど応答が遅くなります。ステップ応答は指数関数的に最終値に収束し、約5Tで整定します。'
+            },
+            'first-order-lead': {
+                title: '1次進み系（First-Order Lead System）',
+                transfer: 'G(s) = K(1+Ts)',
+                description: '1次進み系は位相を進める効果があり、制御系の安定性改善に使用されます。',
+                characteristics: [
+                    '折れ点周波数：ωc = 1/T [rad/s]',
+                    '低周波数ではゲイン≈K、高周波数では+20dB/decで増加',
+                    '位相は0°から+90°へ単調増加（tan⁻¹(Tω)）',
+                    '折れ点周波数でゲインは+3dB、位相は+45°'
+                ],
+                applications: '位相進み補償器、微分先行型PD制御、高周波ノイズフィルタなど',
+                notes: '理想的な微分器（s）よりも実用的で、高周波数でのノイズ増幅が制限されます。位相余裕を増加させ、安定性を向上させます。'
+            },
+            'second-order': {
+                title: '2次系（Second-Order System）',
+                transfer: 'G(s) = \\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}',
+                description: '2次系はバネ-マス-ダンパ系、RLC回路など、多くの物理系で現れる重要な基本要素です。',
+                characteristics: [
+                    '固有周波数：ωn（システムの自然振動数）',
+                    '減衰比：ζ（振動の減衰の度合い）',
+                    'ζ < 1のとき：不足減衰（振動的）',
+                    'ζ = 1のとき：臨界減衰',
+                    'ζ > 1のとき：過減衰',
+                    'ζ < 1/√2のとき共振ピークが発生（共振周波数：ωr = ωn√(1-2ζ²)）'
+                ],
+                applications: 'バネ-マス系、RLC回路、機械振動系、サーボシステムなど',
+                notes: '減衰比ζが小さいほど共振ピークが大きくなり、オーバーシュートが増加します。ζ=0.707付近が最適減衰とされることが多いです。'
+            }
+        };
+
+        // 要素詳細の表示関数
+        function showElementDetails(elementType) {
+            const container = document.getElementById('element-details-container');
+            const data = elementDetailsData[elementType];
+
+            if (!data) return;
+
+            // 既に表示されている要素をクリックした場合は非表示にする
+            const currentlySelected = document.querySelector('tbody tr.selected');
+            if (currentlySelected && currentlySelected.dataset.element === elementType) {
+                currentlySelected.classList.remove('selected');
+                container.classList.remove('active');
+                container.innerHTML = '';
+                return;
+            }
+
+            // すべての行から選択状態を解除
+            document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+
+            // クリックされた行を選択状態にする
+            document.querySelector(`tr[data-element="${elementType}"]`).classList.add('selected');
+
+            // 詳細情報のHTML生成
+            let html = `
+                <h3>${data.title}</h3>
+
+                <div class="formula-box">
+                    <strong>伝達関数：</strong> <span id="detail-transfer-${elementType}"></span>
+                </div>
+
+                <h4>📝 説明</h4>
+                <p>${data.description}</p>
+
+                <h4>📊 周波数特性</h4>
+                <ul>
+                    ${data.characteristics.map(char => `<li>${char}</li>`).join('')}
+                </ul>
+
+                <h4>🔧 応用例</h4>
+                <p>${data.applications}</p>
+
+                <h4>💡 注意点・補足</h4>
+                <p>${data.notes}</p>
+            `;
+
+            container.innerHTML = html;
+            container.classList.add('active');
+
+            // 数式をKaTeXでレンダリング
+            const transferElement = document.getElementById(`detail-transfer-${elementType}`);
+            if (transferElement) {
+                katex.render(data.transfer, transferElement, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            }
+
+            // スムーズスクロール
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // KaTeXで数式をレンダリング
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+
+            // 初期プロット
+            updateBodePlot();
+            updateNyquistPlot();
+            updateSimulation();
+        });
+    </script>
+</body>
+</html>

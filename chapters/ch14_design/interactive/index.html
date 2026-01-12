@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第14章 制御系の設計 - インタラクティブ学習ツール</title>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+            transform: scale(1.2);
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb:hover {
+            background: #764ba2;
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .metric-card .label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                border-bottom: 1px solid #e9ecef;
+                border-left: 3px solid transparent;
+            }
+
+            .tab-button.active {
+                border-bottom-color: #e9ecef;
+                border-left-color: #667eea;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #856404;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #155724;
+        }
+
+        .exercise-section {
+            margin-bottom: 30px;
+        }
+
+        .exercise-section h4 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>第14章 制御系の設計</h1>
+            <p>インタラクティブ学習ツール - PID制御と根軌跡法</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab(0)">PIDシミュレータ</button>
+            <button class="tab-button" onclick="switchTab(1)">根軌跡プロット</button>
+            <button class="tab-button" onclick="switchTab(2)">設計演習</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Tab 1: PID Simulator -->
+            <div class="tab-pane active" id="tab-pid">
+                <div class="card">
+                    <h3>PID制御パラメータ調整</h3>
+                    <p>スライダーを動かして、PID制御器のパラメータをリアルタイムで調整し、ステップ応答を観察します。</p>
+
+                    <div class="info-box">
+                        <strong>PID制御の伝達関数:</strong><br>
+                        $$C(s) = K_p + \frac{K_i}{s} + K_d s$$
+                    </div>
+
+                    <div class="control-group">
+                        <label>比例ゲイン (Kp): <span class="slider-value" id="kp-value">1.0</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="kp-slider" min="0" max="10" step="0.1" value="1.0" oninput="updatePID()">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>積分ゲイン (Ki): <span class="slider-value" id="ki-value">0.5</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="ki-slider" min="0" max="5" step="0.1" value="0.5" oninput="updatePID()">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>微分ゲイン (Kd): <span class="slider-value" id="kd-value">0.1</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="kd-slider" min="0" max="2" step="0.05" value="0.1" oninput="updatePID()">
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="pid-chart"></canvas>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="label">オーバーシュート</div>
+                            <div class="value" id="overshoot">0%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">整定時間</div>
+                            <div class="value" id="settling-time">0 s</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">立ち上がり時間</div>
+                            <div class="value" id="rise-time">0 s</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">定常偏差</div>
+                            <div class="value" id="steady-error">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Root Locus -->
+            <div class="tab-pane" id="tab-root-locus">
+                <div class="card">
+                    <h3>根軌跡プロット</h3>
+                    <p>ゲインを変化させて、閉ループ系の極がs平面上でどのように移動するかを観察します。</p>
+
+                    <div class="info-box">
+                        <strong>根軌跡法の基本:</strong><br>
+                        開ループ伝達関数 $$G(s) = \frac{K}{(s+1)(s+2)(s+3)}$$ に対して、<br>
+                        閉ループ極は $$1 + KG(s) = 0$$ を満たす点として求められます。
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <div class="control-group">
+                                <label>システムの選択:</label>
+                                <select id="system-select" onchange="updateRootLocus()">
+                                    <option value="system1">1次系: G(s) = 1/(s+1)</option>
+                                    <option value="system2" selected>2次系: G(s) = 1/(s²+2s+2)</option>
+                                    <option value="system3">3次系: G(s) = 1/((s+1)(s+2)(s+3))</option>
+                                    <option value="system4">零点あり: G(s) = (s+1)/(s²+2s+5)</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group">
+                                <label>ゲイン (K): <span class="slider-value" id="gain-value">1.0</span></label>
+                                <div class="slider-container">
+                                    <input type="range" id="gain-slider" min="0" max="20" step="0.1" value="1.0" oninput="updateRootLocus()">
+                                </div>
+                            </div>
+
+                            <div id="pole-info" class="info-box" style="margin-top: 20px;">
+                                <strong>現在の極の位置:</strong>
+                                <div id="pole-positions"></div>
+                            </div>
+
+                            <div id="stability-warning"></div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="root-locus-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Design Exercise -->
+            <div class="tab-pane" id="tab-exercise">
+                <div class="card">
+                    <h3>PID制御器設計演習</h3>
+                    <p>所望の応答特性を指定して、適切なPID制御器パラメータを設計します。</p>
+
+                    <div class="exercise-section">
+                        <h4>ステップ1: 制御対象の選択</h4>
+                        <div class="control-group">
+                            <label>制御対象:</label>
+                            <select id="plant-select">
+                                <option value="plant1">1次遅れ系: G(s) = 1/(s+1)</option>
+                                <option value="plant2" selected>2次系: G(s) = 1/(s²+0.5s+1)</option>
+                                <option value="plant3">積分系: G(s) = 1/(s(s+2))</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="exercise-section">
+                        <h4>ステップ2: 所望の応答特性を指定</h4>
+                        <div class="grid-2">
+                            <div class="control-group">
+                                <label>目標整定時間 (秒):</label>
+                                <input type="number" id="target-settling" value="2" min="0.1" step="0.1">
+                            </div>
+                            <div class="control-group">
+                                <label>許容オーバーシュート (%):</label>
+                                <input type="number" id="target-overshoot" value="10" min="0" max="100" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-section">
+                        <h4>ステップ3: 設計方法の選択</h4>
+                        <div class="control-group">
+                            <label>設計手法:</label>
+                            <select id="design-method">
+                                <option value="zn-step">Ziegler-Nichols ステップ応答法</option>
+                                <option value="zn-ultimate">Ziegler-Nichols 限界感度法</option>
+                                <option value="manual">手動調整</option>
+                            </select>
+                        </div>
+                        <button onclick="designController()">PIDパラメータを計算</button>
+                    </div>
+
+                    <div id="design-result" style="display: none;">
+                        <div class="success">
+                            <h4>設計結果</h4>
+                            <p><strong>推奨PIDパラメータ:</strong></p>
+                            <ul>
+                                <li>比例ゲイン Kp = <span id="result-kp"></span></li>
+                                <li>積分ゲイン Ki = <span id="result-ki"></span></li>
+                                <li>微分ゲイン Kd = <span id="result-kd"></span></li>
+                            </ul>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="design-chart"></canvas>
+                        </div>
+
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="label">実際のオーバーシュート</div>
+                                <div class="value" id="actual-overshoot">0%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="label">実際の整定時間</div>
+                                <div class="value" id="actual-settling">0 s</div>
+                            </div>
+                        </div>
+
+                        <div id="design-feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let pidChart, rootLocusChart, designChart;
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            // Render KaTeX math
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+
+            // Initialize charts
+            initPIDChart();
+            initRootLocusChart();
+            initDesignChart();
+
+            // Initial updates
+            updatePID();
+            updateRootLocus();
+        });
+
+        // Tab switching
+        function switchTab(index) {
+            const buttons = document.querySelectorAll('.tab-button');
+            const panes = document.querySelectorAll('.tab-pane');
+
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            panes.forEach((pane, i) => {
+                pane.classList.toggle('active', i === index);
+            });
+
+            // Re-render charts when switching tabs
+            setTimeout(() => {
+                if (index === 0 && pidChart) pidChart.update();
+                if (index === 1 && rootLocusChart) rootLocusChart.update();
+                if (index === 2 && designChart) designChart.update();
+            }, 100);
+        }
+
+        // PID Simulator
+        function initPIDChart() {
+            const ctx = document.getElementById('pid-chart').getContext('2d');
+            pidChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'ステップ応答',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: '目標値',
+                        data: [],
+                        borderColor: '#28a745',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'PID制御のステップ応答',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 (秒)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePID() {
+            const kp = parseFloat(document.getElementById('kp-slider').value);
+            const ki = parseFloat(document.getElementById('ki-slider').value);
+            const kd = parseFloat(document.getElementById('kd-slider').value);
+
+            document.getElementById('kp-value').textContent = kp.toFixed(1);
+            document.getElementById('ki-value').textContent = ki.toFixed(1);
+            document.getElementById('kd-value').textContent = kd.toFixed(2);
+
+            // Simulate step response
+            const dt = 0.01;
+            const tMax = 10;
+            const time = [];
+            const response = [];
+            const reference = [];
+
+            // Second-order plant: G(s) = 1/(s^2 + 2s + 1)
+            let y = 0, dy = 0;
+            let integral = 0;
+            let prevError = 0;
+
+            for (let t = 0; t <= tMax; t += dt) {
+                time.push(t);
+                reference.push(1);
+
+                const error = 1 - y;
+                integral += error * dt;
+                const derivative = (error - prevError) / dt;
+
+                const u = kp * error + ki * integral + kd * derivative;
+
+                // Plant dynamics: d²y/dt² + 2dy/dt + y = u
+                const ddy = u - 2 * dy - y;
+                dy += ddy * dt;
+                y += dy * dt;
+
+                response.push(y);
+                prevError = error;
+            }
+
+            pidChart.data.labels = time.map(t => t.toFixed(2));
+            pidChart.data.datasets[0].data = response;
+            pidChart.data.datasets[1].data = reference;
+            pidChart.update();
+
+            // Calculate metrics
+            const maxValue = Math.max(...response);
+            const overshoot = ((maxValue - 1) * 100).toFixed(1);
+
+            // Find settling time (within 2% of final value)
+            let settlingTime = 0;
+            for (let i = response.length - 1; i >= 0; i--) {
+                if (Math.abs(response[i] - 1) > 0.02) {
+                    settlingTime = time[i];
+                    break;
+                }
+            }
+
+            // Find rise time (10% to 90%)
+            let riseTime = 0;
+            let t10 = 0, t90 = 0;
+            for (let i = 0; i < response.length; i++) {
+                if (response[i] >= 0.1 && t10 === 0) t10 = time[i];
+                if (response[i] >= 0.9 && t90 === 0) {
+                    t90 = time[i];
+                    break;
+                }
+            }
+            riseTime = t90 - t10;
+
+            const steadyError = Math.abs(1 - response[response.length - 1]).toFixed(4);
+
+            document.getElementById('overshoot').textContent = overshoot + '%';
+            document.getElementById('settling-time').textContent = settlingTime.toFixed(2) + ' s';
+            document.getElementById('rise-time').textContent = riseTime.toFixed(2) + ' s';
+            document.getElementById('steady-error').textContent = steadyError;
+        }
+
+        // Root Locus Plotter
+        function initRootLocusChart() {
+            const ctx = document.getElementById('root-locus-chart').getContext('2d');
+            rootLocusChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '根軌跡',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.3)',
+                        showLine: true,
+                        pointRadius: 1
+                    }, {
+                        label: '開ループ極',
+                        data: [],
+                        borderColor: '#dc3545',
+                        backgroundColor: '#dc3545',
+                        pointStyle: 'cross',
+                        pointRadius: 8,
+                        showLine: false
+                    }, {
+                        label: '開ループ零点',
+                        data: [],
+                        borderColor: '#28a745',
+                        backgroundColor: '#28a745',
+                        pointStyle: 'circle',
+                        pointRadius: 6,
+                        showLine: false
+                    }, {
+                        label: '現在の極 (K=' + document.getElementById('gain-slider').value + ')',
+                        data: [],
+                        borderColor: '#ffc107',
+                        backgroundColor: '#ffc107',
+                        pointStyle: 'crossRot',
+                        pointRadius: 10,
+                        showLine: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 's平面上の根軌跡',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '実部 (Re)'
+                            },
+                            min: -5,
+                            max: 1
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '虚部 (Im)'
+                            },
+                            min: -4,
+                            max: 4
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRootLocus() {
+            const systemType = document.getElementById('system-select').value;
+            const K = parseFloat(document.getElementById('gain-slider').value);
+
+            document.getElementById('gain-value').textContent = K.toFixed(1);
+
+            let openLoopPoles = [];
+            let openLoopZeros = [];
+            let locusPoints = [];
+            let currentPoles = [];
+
+            // Define systems
+            if (systemType === 'system1') {
+                // 1st order: G(s) = 1/(s+1)
+                openLoopPoles = [{x: -1, y: 0}];
+                openLoopZeros = [];
+
+                // Calculate locus
+                for (let k = 0; k <= 20; k += 0.1) {
+                    locusPoints.push({x: -1 - k, y: 0});
+                }
+
+                // Current poles
+                currentPoles = [{x: -1 - K, y: 0}];
+
+            } else if (systemType === 'system2') {
+                // 2nd order: G(s) = 1/(s²+2s+2) = 1/((s+1-j)(s+1+j))
+                openLoopPoles = [{x: -1, y: 1}, {x: -1, y: -1}];
+                openLoopZeros = [];
+
+                // Calculate locus (simplified)
+                for (let k = 0; k <= 20; k += 0.1) {
+                    const imagPart = Math.sqrt(1 + k);
+                    locusPoints.push({x: -1 - k/2, y: imagPart});
+                    locusPoints.push({x: -1 - k/2, y: -imagPart});
+                }
+
+                // Current poles (approximate for 2nd order with gain)
+                const sigma = -1 - K/4;
+                const omega = Math.sqrt(Math.max(0, 1 + K/2));
+                currentPoles = [{x: sigma, y: omega}, {x: sigma, y: -omega}];
+
+            } else if (systemType === 'system3') {
+                // 3rd order: G(s) = 1/((s+1)(s+2)(s+3))
+                openLoopPoles = [{x: -1, y: 0}, {x: -2, y: 0}, {x: -3, y: 0}];
+                openLoopZeros = [];
+
+                // Simplified locus
+                for (let k = 0; k <= 20; k += 0.1) {
+                    locusPoints.push({x: -1 - k, y: 0});
+                    const angle = 60 * Math.PI / 180;
+                    const r = k / 2;
+                    locusPoints.push({x: -2 + r * Math.cos(angle), y: r * Math.sin(angle)});
+                    locusPoints.push({x: -2 + r * Math.cos(angle), y: -r * Math.sin(angle)});
+                }
+
+                // Current poles (approximate)
+                currentPoles = [{x: -1 - K/2, y: 0}, {x: -2, y: K/3}, {x: -2, y: -K/3}];
+
+            } else if (systemType === 'system4') {
+                // With zero: G(s) = (s+1)/(s²+2s+5)
+                openLoopPoles = [{x: -1, y: 2}, {x: -1, y: -2}];
+                openLoopZeros = [{x: -1, y: 0}];
+
+                // Simplified locus
+                for (let k = 0; k <= 20; k += 0.1) {
+                    const r = k / 5;
+                    locusPoints.push({x: -1 - r, y: 2 - r});
+                    locusPoints.push({x: -1 - r, y: -2 + r});
+                }
+
+                // Current poles
+                const shift = K / 10;
+                currentPoles = [{x: -1 - shift, y: 2 - shift}, {x: -1 - shift, y: -2 + shift}];
+            }
+
+            // Update chart
+            rootLocusChart.data.datasets[0].data = locusPoints;
+            rootLocusChart.data.datasets[1].data = openLoopPoles;
+            rootLocusChart.data.datasets[2].data = openLoopZeros;
+            rootLocusChart.data.datasets[3].data = currentPoles;
+            rootLocusChart.data.datasets[3].label = '現在の極 (K=' + K.toFixed(1) + ')';
+            rootLocusChart.update();
+
+            // Display pole positions
+            let poleText = '<ul>';
+            currentPoles.forEach((pole, i) => {
+                if (Math.abs(pole.y) < 0.01) {
+                    poleText += `<li>極${i+1}: s = ${pole.x.toFixed(2)}</li>`;
+                } else {
+                    poleText += `<li>極${i+1}: s = ${pole.x.toFixed(2)} ${pole.y >= 0 ? '+' : ''}${pole.y.toFixed(2)}j</li>`;
+                }
+            });
+            poleText += '</ul>';
+            document.getElementById('pole-positions').innerHTML = poleText;
+
+            // Check stability
+            const unstable = currentPoles.some(pole => pole.x > 0);
+            const warningDiv = document.getElementById('stability-warning');
+
+            if (unstable) {
+                warningDiv.innerHTML = '<div class="warning"><strong>警告:</strong> 系が不安定です（極が右半平面にあります）</div>';
+            } else {
+                warningDiv.innerHTML = '<div class="success"><strong>安定:</strong> すべての極が左半平面にあります</div>';
+            }
+        }
+
+        // Design Exercise
+        function initDesignChart() {
+            const ctx = document.getElementById('design-chart').getContext('2d');
+            designChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '設計応答',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: '目標値',
+                        data: [],
+                        borderColor: '#28a745',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '設計結果の検証',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時間 (秒)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '出力'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function designController() {
+            const plantType = document.getElementById('plant-select').value;
+            const targetSettling = parseFloat(document.getElementById('target-settling').value);
+            const targetOvershoot = parseFloat(document.getElementById('target-overshoot').value);
+            const designMethod = document.getElementById('design-method').value;
+
+            let kp, ki, kd;
+
+            // Ziegler-Nichols step response method (simplified)
+            if (designMethod === 'zn-step') {
+                // Approximate parameters based on plant type and targets
+                const L = 0.5;  // delay time (approximate)
+                const T = 2.0;  // time constant (approximate)
+
+                kp = 1.2 * T / L;
+                ki = 0.6 * T / (L * L);
+                kd = 0.6 * L;
+
+            } else if (designMethod === 'zn-ultimate') {
+                // Ziegler-Nichols ultimate sensitivity method
+                const Ku = 8.0;  // ultimate gain (approximate)
+                const Tu = 2.0;  // ultimate period (approximate)
+
+                kp = 0.6 * Ku;
+                ki = 1.2 * Ku / Tu;
+                kd = 0.075 * Ku * Tu;
+
+            } else {
+                // Manual tuning based on desired specs
+                // Using formulas based on damping ratio and natural frequency
+                const zeta = -Math.log(targetOvershoot / 100) / Math.sqrt(Math.PI * Math.PI + Math.log(targetOvershoot / 100) ** 2);
+                const wn = 4 / (zeta * targetSettling);
+
+                kp = wn * wn;
+                ki = wn * wn * wn / 10;
+                kd = 2 * zeta * wn;
+            }
+
+            // Limit values to reasonable ranges
+            kp = Math.max(0, Math.min(10, kp));
+            ki = Math.max(0, Math.min(5, ki));
+            kd = Math.max(0, Math.min(2, kd));
+
+            // Display results
+            document.getElementById('result-kp').textContent = kp.toFixed(2);
+            document.getElementById('result-ki').textContent = ki.toFixed(2);
+            document.getElementById('result-kd').textContent = kd.toFixed(2);
+            document.getElementById('design-result').style.display = 'block';
+
+            // Simulate with designed parameters
+            simulateDesign(kp, ki, kd, targetSettling, targetOvershoot);
+        }
+
+        function simulateDesign(kp, ki, kd, targetSettling, targetOvershoot) {
+            const dt = 0.01;
+            const tMax = Math.max(10, targetSettling * 2);
+            const time = [];
+            const response = [];
+            const reference = [];
+
+            let y = 0, dy = 0;
+            let integral = 0;
+            let prevError = 0;
+
+            for (let t = 0; t <= tMax; t += dt) {
+                time.push(t);
+                reference.push(1);
+
+                const error = 1 - y;
+                integral += error * dt;
+                const derivative = (error - prevError) / dt;
+
+                const u = kp * error + ki * integral + kd * derivative;
+
+                const ddy = u - 2 * dy - y;
+                dy += ddy * dt;
+                y += dy * dt;
+
+                response.push(y);
+                prevError = error;
+            }
+
+            designChart.data.labels = time.map(t => t.toFixed(2));
+            designChart.data.datasets[0].data = response;
+            designChart.data.datasets[1].data = reference;
+            designChart.update();
+
+            // Calculate actual metrics
+            const maxValue = Math.max(...response);
+            const actualOvershoot = ((maxValue - 1) * 100).toFixed(1);
+
+            let actualSettling = 0;
+            for (let i = response.length - 1; i >= 0; i--) {
+                if (Math.abs(response[i] - 1) > 0.02) {
+                    actualSettling = time[i];
+                    break;
+                }
+            }
+
+            document.getElementById('actual-overshoot').textContent = actualOvershoot + '%';
+            document.getElementById('actual-settling').textContent = actualSettling.toFixed(2) + ' s';
+
+            // Provide feedback
+            const feedbackDiv = document.getElementById('design-feedback');
+            let feedback = '';
+
+            if (parseFloat(actualOvershoot) <= targetOvershoot * 1.2) {
+                feedback += '<div class="success">✓ オーバーシュートが目標範囲内です</div>';
+            } else {
+                feedback += '<div class="warning">! オーバーシュートが目標を超えています。Kdを増やすか、Kpを減らしてください。</div>';
+            }
+
+            if (actualSettling <= targetSettling * 1.2) {
+                feedback += '<div class="success">✓ 整定時間が目標範囲内です</div>';
+            } else {
+                feedback += '<div class="warning">! 整定時間が目標を超えています。KpまたはKiを増やしてください。</div>';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+        }
+    </script>
+</body>
+</html>
