@@ -1,0 +1,21 @@
+# GitHub Pages Configuration
+title: フィードバック制御 - インタラクティブ学習コース
+description: 制御工学の基礎から応用までを体系的に学ぶためのインタラクティブ教材
+baseurl: "/lec_ctrl_base"
+url: "https://shigenoburyuto.github.io"
+
+# Theme
+theme: null
+
+# Exclude files from Jekyll processing
+exclude:
+  - .auto-claude
+  - .worktrees
+  - "*.md"
+  - "!README.md"
+
+# Include HTML files
+include:
+  - index.html
+  - viewer.html
+  - chapters

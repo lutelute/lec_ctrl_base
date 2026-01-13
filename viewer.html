@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教材ビューア - フィードバック制御</title>
+
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/javascript.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .navbar h1 {
+            font-size: 1.3em;
+        }
+
+        .navbar h1:hover {
+            opacity: 0.9;
+        }
+
+        .level-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .level-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .level-tab.beginner {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .level-tab.beginner.active, .level-tab.beginner:hover {
+            background: #1976d2;
+        }
+
+        .level-tab.intermediate {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .level-tab.intermediate.active, .level-tab.intermediate:hover {
+            background: #f57c00;
+        }
+
+        .level-tab.advanced {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .level-tab.advanced.active, .level-tab.advanced:hover {
+            background: #c2185b;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: #d32f2f;
+        }
+
+        /* Markdown content styles */
+        .markdown-body h1 {
+            font-size: 2em;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5em;
+            color: #444;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25em;
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        .markdown-body h4 {
+            font-size: 1.1em;
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .markdown-body p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        .markdown-body li {
+            margin-bottom: 8px;
+        }
+
+        .markdown-body code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-body pre {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .markdown-body pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85em;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #555;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .markdown-body tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .markdown-body hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 30px 0;
+        }
+
+        .markdown-body a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        /* Math styling */
+        .katex-display {
+            margin: 20px 0;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        /* Tool link button */
+        .tool-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .tool-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .content-card {
+                padding: 25px;
+            }
+
+            .markdown-body h1 {
+                font-size: 1.5em;
+            }
+
+            .level-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="index.html"><h1>フィードバック制御</h1></a>
+            <div class="level-tabs" id="levelTabs"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="content-card">
+            <div id="content" class="loading">読み込み中...</div>
+        </div>
+    </div>
+
+    <script>
+        // Chapter info mapping
+        const chapters = {
+            'ch01_overview': { num: 1, title: '制御工学の全体像', prev: null, next: 'ch02_laplace' },
+            'ch02_laplace': { num: 2, title: '複素数とラプラス変換', prev: 'ch01_overview', next: 'ch03_lti' },
+            'ch03_lti': { num: 3, title: 'LTIシステムの表現', prev: 'ch02_laplace', next: 'ch04_transfer' },
+            'ch04_transfer': { num: 4, title: '伝達関数', prev: 'ch03_lti', next: 'ch05_frequency' },
+            'ch05_frequency': { num: 5, title: '周波数伝達関数', prev: 'ch04_transfer', next: 'ch06_statespace' },
+            'ch06_statespace': { num: 6, title: '状態空間表現', prev: 'ch05_frequency', next: 'ch07_midterm' },
+            'ch07_midterm': { num: 7, title: '中間試験対策', prev: 'ch06_statespace', next: 'ch08_fbff' },
+            'ch08_fbff': { num: 8, title: 'FB制御とFF制御', prev: 'ch07_midterm', next: 'ch09_stability_lti' },
+            'ch09_stability_lti': { num: 9, title: 'LTIシステムの安定性', prev: 'ch08_fbff', next: 'ch10_stability_fb' },
+            'ch10_stability_fb': { num: 10, title: 'FBシステムの安定性', prev: 'ch09_stability_lti', next: 'ch11_transient' },
+            'ch11_transient': { num: 11, title: '制御系の過渡特性', prev: 'ch10_stability_fb', next: 'ch12_steady' },
+            'ch12_steady': { num: 12, title: '制御系の定常特性', prev: 'ch11_transient', next: 'ch13_freq_char' },
+            'ch13_freq_char': { num: 13, title: '制御系の周波数特性', prev: 'ch12_steady', next: 'ch14_design' },
+            'ch14_design': { num: 14, title: '制御系の設計', prev: 'ch13_freq_char', next: 'ch15_final' },
+            'ch15_final': { num: 15, title: '期末試験対策', prev: 'ch14_design', next: null }
+        };
+
+        const levelNames = {
+            'beginner': '初級',
+            'intermediate': '中級',
+            'advanced': '上級'
+        };
+
+        // Get URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const file = params.get('file');
+
+        // Parse file path to get chapter and level
+        function parseFilePath(filePath) {
+            const match = filePath.match(/chapters\/(ch\d+_\w+)\/note_(\w+)\.md/);
+            if (match) {
+                return { chapter: match[1], level: match[2] };
+            }
+            return null;
+        }
+
+        // Create level tabs
+        function createLevelTabs(chapter, currentLevel) {
+            const tabsContainer = document.getElementById('levelTabs');
+            const levels = ['beginner', 'intermediate', 'advanced'];
+
+            levels.forEach(level => {
+                const tab = document.createElement('a');
+                tab.className = `level-tab ${level} ${level === currentLevel ? 'active' : ''}`;
+                tab.href = `viewer.html?file=chapters/${chapter}/note_${level}.md`;
+                tab.textContent = levelNames[level];
+                tabsContainer.appendChild(tab);
+            });
+
+            // Add interactive tool link
+            const toolTab = document.createElement('a');
+            toolTab.className = 'level-tab';
+            toolTab.href = `chapters/${chapter}/interactive/index.html`;
+            toolTab.textContent = 'ツール';
+            toolTab.style.background = 'rgba(255,255,255,0.3)';
+            tabsContainer.appendChild(toolTab);
+        }
+
+        // Create navigation buttons
+        function createNavButtons(chapter, level) {
+            const info = chapters[chapter];
+            if (!info) return '';
+
+            const prevBtn = info.prev
+                ? `<a href="viewer.html?file=chapters/${info.prev}/note_${level}.md" class="nav-btn">← 前の章</a>`
+                : `<span class="nav-btn disabled">← 前の章</span>`;
+
+            const nextBtn = info.next
+                ? `<a href="viewer.html?file=chapters/${info.next}/note_${level}.md" class="nav-btn">次の章 →</a>`
+                : `<span class="nav-btn disabled">次の章 →</span>`;
+
+            return `<div class="nav-buttons">${prevBtn}${nextBtn}</div>`;
+        }
+
+        // Load and render markdown
+        async function loadMarkdown() {
+            const contentDiv = document.getElementById('content');
+
+            if (!file) {
+                contentDiv.innerHTML = '<div class="error">ファイルが指定されていません。<br><a href="index.html">ダッシュボードに戻る</a></div>';
+                return;
+            }
+
+            const parsed = parseFilePath(file);
+            if (parsed) {
+                createLevelTabs(parsed.chapter, parsed.level);
+                const chapterInfo = chapters[parsed.chapter];
+                if (chapterInfo) {
+                    document.title = `第${chapterInfo.num}章 ${chapterInfo.title} (${levelNames[parsed.level]}) - フィードバック制御`;
+                }
+            }
+
+            try {
+                const response = await fetch(file);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                let markdown = await response.text();
+
+                // Configure marked
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    highlight: function(code, lang) {
+                        if (lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return code;
+                    }
+                });
+
+                // Render markdown
+                let html = marked.parse(markdown);
+
+                // Add tool button if chapter is detected
+                if (parsed) {
+                    const toolButton = `<a href="chapters/${parsed.chapter}/interactive/index.html" class="tool-button">インタラクティブツールを開く</a>`;
+                    html = toolButton + html;
+                }
+
+                // Add navigation buttons
+                if (parsed) {
+                    html += createNavButtons(parsed.chapter, parsed.level);
+                }
+
+                contentDiv.className = 'markdown-body';
+                contentDiv.innerHTML = html;
+
+                // Render math with KaTeX
+                renderMathInElement(contentDiv, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\[', right: '\\]', display: true },
+                        { left: '\\(', right: '\\)', display: false }
+                    ],
+                    throwOnError: false
+                });
+
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">ファイルを読み込めませんでした。<br><small>${error.message}</small><br><br><a href="index.html">ダッシュボードに戻る</a></div>`;
+            }
+        }
+
+        // Initialize
+        loadMarkdown();
+    </script>
+</body>
+</html>
