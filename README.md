@@ -1,8 +1,8 @@
 # フィードバック制御 - インタラクティブ学習コース
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-blue?logo=github)](https://shigenoburyuto.github.io/lec_ctrl_base/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-blue?logo=github)](https://lutelute.github.io/lec_ctrl_base/)
 
-> **オンラインデモ**: https://shigenoburyuto.github.io/lec_ctrl_base/
+> **オンラインデモ**: https://lutelute.github.io/lec_ctrl_base/
 
 ## コース概要
 
@@ -201,12 +201,12 @@
 
 ### オンラインで学習（推奨）
 
-[ダッシュボード](https://shigenoburyuto.github.io/lec_ctrl_base/)にアクセスするだけで、すぐに学習を開始できます。
+[ダッシュボード](https://lutelute.github.io/lec_ctrl_base/)にアクセスするだけで、すぐに学習を開始できます。
 
 ### ローカルで実行
 
 ```bash
-git clone https://github.com/shigenoburyuto/lec_ctrl_base.git
+git clone https://github.com/lutelute/lec_ctrl_base.git
 cd lec_ctrl_base
 # ローカルサーバーを起動（Python 3の場合）
 python -m http.server 8000
@@ -217,7 +217,7 @@ python -m http.server 8000
 
 ## 使い方
 
-1. **[ダッシュボード](https://shigenoburyuto.github.io/lec_ctrl_base/)** から学びたい章を選ぶ
+1. **[ダッシュボード](https://lutelute.github.io/lec_ctrl_base/)** から学びたい章を選ぶ
 2. **インタラクティブツール**で概念を視覚的に理解する
 3. **初級編**を読んで、基本的な考え方を身につける
 4. **中級編**で数式を用いた詳細な解説を学ぶ
